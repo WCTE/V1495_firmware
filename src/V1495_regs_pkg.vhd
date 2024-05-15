@@ -15,6 +15,8 @@ package V1495_regs IS
 
   type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
 
+  constant a_counter : integer := 3;
+
   constant a_reg_r : reg_addresses(0 to 17) := (x"1000",  
                                                 x"1002",           
                                                 x"1004",          

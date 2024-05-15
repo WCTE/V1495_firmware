@@ -92,7 +92,7 @@ begin
   
   REG_R(2) <= x"BEEFCAFE";
   
-  REG_R(3) <= std_logic_vector(counter(55 downto 24));
+  REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
   REG_R(4) <= std_logic_vector(counter(31 downto 0));
   
   proc_flipReg : process(LCLK)
@@ -101,6 +101,21 @@ begin
 	   counter <= counter + 1;	 
 	 end if;
   end process proc_flipReg;
+  
+  proc_onof : process(LCLK)
+   variable onoff : std_logic := '0';
+  begin
+    if rising_edge(LCLK) then
+		 if REG_RW(0)(0) = '0' then
+		   onoff := '0';
+		 else
+		   onoff := not onoff;
+		 end if;
+		 GOUT(0) <= onoff;
+		 GOUT(1) <= not onoff;  
+    end if;
+  end process proc_onof;
+  
 
 
     instance_V1495_com: entity work.V1495_regs_communication 
