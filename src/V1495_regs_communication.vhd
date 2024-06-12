@@ -20,8 +20,8 @@ entity V1495_regs_communication is
     LAD        : inout  std_logic_vector(15 DOWNTO 0);
     WR_DLY_CMD : out	std_logic_vector( 1 DOWNTO 0);
 
-    REG_R  : in reg_data(17 downto 0);
-    REG_RW : buffer reg_data(17 downto 0)
+    REG_R  : in reg_data(7 downto 0);
+    REG_RW : buffer reg_data(7 downto 0)
 	 
 	);
 end V1495_regs_communication;
@@ -98,7 +98,7 @@ begin
         when LBWRITEH =>   
           wreg  := LAD & DTL;  -- Get the higher 16 bits and create the 32 bit data
 			 
-			 l_reg_write : for k in 0 to 17 loop
+			 l_reg_write : for k in 0 to 7 loop
 			   if ADDR = a_reg_rw(k) then
 				  REG_RW(k) <= wreg;
 				end if;
@@ -109,7 +109,7 @@ begin
         when LBREADL =>  
           nREADY    <= '0';  -- Assuming that the register is ready for reading
 			 
-			 l_reg_read : for k in 0 to 17 loop
+			 l_reg_read : for k in 0 to 7 loop
 			   if ADDR = a_reg_r(k) then
 				  rreg := REG_R(k);
 				elsif ADDR = a_reg_rw(k) then

@@ -1,14 +1,32 @@
+-- ========================================================================
+-- ****************************************************************************
+-- Company:         CAEN SpA - Viareggio - Italy
+-- Model:           V1495 -  Multipurpose Programmable Trigger Unit
+-- FPGA Proj. Name: v1495scaler
+-- Device:          ALTERA EP1C4F400C6
+-- Author:          Carlo Tintori
+-- Date:            May 26th, 2010
+-- ----------------------------------------------------------------------------
+-- Module:          V1495_Demo4
+-- Description:     Top design
+-- ****************************************************************************
+
+-- ############################################################################
+-- Revision History:
+-- ############################################################################
+
+
 library IEEE;
 use IEEE.std_Logic_1164.all;
 use IEEE.std_Logic_arith.all;
 use IEEE.std_Logic_unsigned.all;
-
-
+use work.components.all;
 use work.V1495_regs.all;
 
 
+
 entity HyperK_WCTE_V1495_top is
-  port(
+	port(
     -- Front Panel Ports
     A        : IN     std_logic_vector (31 DOWNTO 0);  -- In A (32 x LVDS/ECL)
     B        : IN     std_logic_vector (31 DOWNTO 0);  -- In B (32 x LVDS/ECL)
@@ -68,72 +86,121 @@ entity HyperK_WCTE_V1495_top is
     nREADY     : OUT    std_logic;
     nINT       : OUT    std_logic;
     LAD        : INOUT  std_logic_vector (15 DOWNTO 0)
-  );
-  
-end HyperK_WCTE_V1495_top;
+	);
+
+END HyperK_WCTE_V1495_top ;
 
 
 architecture rtl of HyperK_WCTE_V1495_top is
 
-  signal REG_R  : reg_data(17 downto 0) := (others => (others => 'Z'));
-  signal REG_RW : reg_data(17 downto 0) := (others => (others => 'Z'));
-
+  --------------------------
+  ------- SIGNALS ----------
+  --------------------------
+  
+  signal REG_R : reg_data(7 downto 0);
+  signal REG_RW : reg_data(7 downto 0);
+  
+	-- Data Producer signals
   signal wr_dly_cmd       : std_logic_vector( 1 downto 0) := (others => '0');
-	
+  signal wr_dly           : std_logic_vector( 1 downto 0) := (others => '0');
+  signal input_A_mask     : std_logic_vector(31 downto 0) := (others => 'Z');
+  signal input_B_mask			: std_logic_vector(31 downto 0) := (others => 'Z');
+  signal ctrlreg     		  : std_logic_vector(31 downto 0) := (others => 'Z');  
+  signal D_Expan     			: std_logic_vector(31 downto 0) := (others => 'Z');
+  
   signal counter : unsigned(63 downto 0);
-
+  
+  
 begin
+  -- Port Output Enable (0=Output, 1=Input)
+  nOED  <=  '0';    -- Output Enable Port D (only for A395D)
+  nOEG  <=  '0';    -- Output Enable Port G
+  D     <=  D_Expan	when IDD = "011"  else (others => 'Z');
+  
+  
+  nOEDDLY0  <=  '0';  -- Output Enable for PDL0 (active low)
+  nOEDDLY1  <=  '0';  -- Output Enable for PDL1 (active low)
+  
+  -- Port Level Select (0=NIM, 1=TTL)
+  SELD      <=  ctrlreg(0);    -- Output Level Select Port D (only for A395D)
+  SELG      <=  ctrlreg(1);    -- Output Level Select Port G
 
+  DIRDDLY   <=  ctrlreg(4);  -- Direction of PDL data (0 => Read Dip Switches)
+                              --                       (1 => Write from FPGA)                           
+  WR_DLY0   <=  wr_dly(0);
+  WR_DLY1   <=  wr_dly(1);
+  
+  ctrlreg	  <= REG_RW(3);
+  
+ 
+  -- REG_R6  -->  |    ------ 24 bit ------   --4bit--4bit-|       
+  -- REG_R6  -->  | ... obligatory '0'  ...    |  0  |  0  |
   REG_R(6)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
-  REG_R(6)(7 downto 4)   <= conv_std_logic_vector(6, 4);  -- Demo number
-  REG_R(6)(31 downto 8)  <= (others => '1');
-  REG_R(1) <= x"DEADBEEF" when REG_RW(6) = x"CAFECAFE" else
-              x"BEEFBEED";
+  REG_R(6)(7 downto 4)   <= conv_std_logic_vector(7, 4);  -- Demo number
+  REG_R(6)(31 downto 8)  <= (others => '0');
   
-  REG_R(2) <= x"BEEFCAFE";
+  REG_R(5) <= x"DEADBEEF";
   
-  REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
-  REG_R(4) <= std_logic_vector(counter(31 downto 0));
-  
-  proc_flipReg : process(LCLK)
+  proc_reg_switch : process(LCLK)
   begin
     if rising_edge(LCLK) then
-	   counter <= counter + 1;	 
-	 end if;
-  end process proc_flipReg;
+      if REG_RW(6) = x"CAFECAFE" then
+        REG_R(1) <= x"DEADBEEF";
+      else
+        REG_R(1) <= x"BEEFBEEF";
+      end if;
+    end if;
+  end process proc_reg_switch;
+   
+  
   
   proc_onof : process(LCLK)
    variable onoff : std_logic := '0';
   begin
     if rising_edge(LCLK) then
-		 if REG_RW(0)(0) = '0' then
-		   onoff := '0';
-		 else
-		   onoff := not onoff;
-		 end if;
-		 GOUT(0) <= onoff;
-		 GOUT(1) <= not onoff;  
+      if REG_RW(0)(0) = '0' then
+        onoff := '0';
+      else
+        onoff := not onoff;
+      end if;
+      GOUT(0) <= onoff;
+      GOUT(1) <= not onoff;  
     end if;
+	 
+   REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
+   REG_R(4) <= std_logic_vector(counter(31 downto 0));
+  
   end process proc_onof;
   
+  
+  proc_flipReg : process(LCLK)
+  begin
+    if rising_edge(LCLK) then
+      counter <= counter + 1;       
+    end if;
+  end process proc_flipReg;
 
+  
 
-    instance_V1495_com: entity work.V1495_regs_communication 
-      port map (
-        -- Local Bus in/out signals
-        nLBRES      => nLBRES,
-        nBLAST      => nBLAST,   
-        WnR         => WnR,      
-        nADS        => nADS,     
-        LCLK        => LCLK,     
-        nREADY      => nREADY,   
-        nINT        => nINT,     
-        LAD         => LAD,
-        WR_DLY_CMD  => WR_DLY_CMD,
-        -- Internal Registers
-        REG_R     => REG_R,
-        REG_RW    => REG_RW
+  
+    
+  instance_LB_INT: V1495_regs_communication 
+    port map (
+      -- Local Bus in/out signals
+      nLBRES      => nLBRES,
+      nBLAST      => nBLAST,   
+      WnR         => WnR,      
+      nADS        => nADS,     
+      LCLK        => LCLK,     
+      nREADY      => nREADY,   
+      nINT        => nINT,     
+      LAD         => LAD,
+      WR_DLY_CMD  => WR_DLY_CMD,
+      -- Internal Registers
+      REG_R => REG_R,
+      REG_RW => REG_RW
       );
-
-
-end architecture rtl;
+  
+ 
+end rtl;
+   
