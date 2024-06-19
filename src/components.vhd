@@ -65,6 +65,32 @@ PACKAGE components is
 	end component V1495_regs_communication ;
 
 
+	component logic_operator is 
+     port(
+	    clk : in std_logic;
+	    reset : in std_logic;
+       channel_mask : in std_logic_vector(95 downto 0);
+	    data_in : in std_logic_vector(95 downto 0);
+	    a_gate_width : in std_logic_vector(31 downto 0);
+	    operation : in std_logic;
+	    result : out std_logic_vector(95 downto 0)
+     );
+   end component logic_operator;
+	
+	component ALTERA_CMN_PLL is
+generic (
+  clk0_divide_by      : natural := 0;
+  clk0_duty_cycle     : natural := 0;
+  clk0_multiply_by    : natural := 0;
+  inclk0_input_frequency  : natural := 0
+);
+port (
+  areset          : in  std_logic := '0';
+  clk_in          : in  std_logic := '0';
+  clk_out_0       : out std_logic := '0';
+  locked          : out std_logic := '0'
+);
+end component ALTERA_CMN_PLL;
 	
 	
 	component V1495_Demo4 is

@@ -30,7 +30,7 @@ entity HyperK_WCTE_V1495_top is
     -- Front Panel Ports
     A        : IN     std_logic_vector (31 DOWNTO 0);  -- In A (32 x LVDS/ECL)
     B        : IN     std_logic_vector (31 DOWNTO 0);  -- In B (32 x LVDS/ECL)
-    C        : OUT    std_logic_vector (31 DOWNTO 0);  -- Out C (32 x LVDS)
+    C        : IN     std_logic_vector (31 DOWNTO 0);  -- In C (32 x LVDS/ECL)
     D        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out D (I/O Expansion)
     E        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out E (I/O Expansion)
     F        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out F (I/O Expansion)
@@ -110,8 +110,19 @@ architecture rtl of HyperK_WCTE_V1495_top is
   
   signal counter : unsigned(63 downto 0);
   
+  signal allData : std_logic_vector(95 downto 0);
+  signal mask : std_logic_vector(95 downto 0);
+  
+  signal hits : std_logic_vector(95 downto 0);
+  
+  signal otherClk : std_logic;
   
 begin
+
+  --allData <= C & B & A;
+  mask <= x"00000000_00000000_00000007";
+  
+  
   -- Port Output Enable (0=Output, 1=Input)
   nOED  <=  '0';    -- Output Enable Port D (only for A395D)
   nOEG  <=  '0';    -- Output Enable Port G
@@ -130,14 +141,76 @@ begin
   WR_DLY0   <=  wr_dly(0);
   WR_DLY1   <=  wr_dly(1);
   
-  ctrlreg	  <= REG_RW(3);
+  ctrlreg	  <= X"00000013";--REG_RW(3);
+  
+  proc_data_pipeline : process(otherClk)
+  begin
+    if rising_edge(otherClk) then
+	   allData <= C & B & A;
+	 end if;
+  end process proc_data_pipeline;
+  
+  
+  
+  inst_logic : logic_operator
+  port map(
+	clk => otherClk,
+	reset => not nLBRES,
+	a_gate_width => x"0000002e",
+	channel_mask => mask,
+	data_in => allData,
+	operation => '0',
+	result => hits
+  );
+  
+  --GOUT(1) <= A(0);  
+  
+  
+    instance_gdgen: gdgen
+    port map(
+      lclk     			=> lclk,
+      GIN(0)           => not nLBRES,
+		GIN(1) => A(0),
+      ctrlreg       => ctrlreg,
+      pulse         => pulse,
+      wr_dly_cmd    => wr_dly_cmd,
+      wr_dly        => wr_dly,
+      ddly          => DDLY,
+      start	        => START,
+      nstart	      => nSTART,
+      out_pgdl	    => open,
+      out_fgdl	    => open,
+      delay_pdl     => x"10", --REG_RW(6)(7 downto 0),
+      gate_pdl      => x"ff", --REG_RW(7)(7 downto 0),
+      delay_fdl     => X"00000040",--REG_RW(4),
+      gate_fdl      =>  X"00000001"--REG_RW(5)
+    );
+    
+	 
+	inst_pll : ALTERA_CMN_PLL
+	generic map(
+     clk0_divide_by      => 8,
+     clk0_duty_cycle     => 50,
+     clk0_multiply_by    => 25,
+     inclk0_input_frequency  => 25000  --actually period in us.
+   )
+   port map (
+     areset     => not nLBRES,
+     clk_in     => lclk,
+     clk_out_0  => otherClk,
+     locked     => open
+   );
+  
+  GOUT(0) <= lclk;
+  GOUT(1) <= otherClk;
+  
   
  
   -- REG_R6  -->  |    ------ 24 bit ------   --4bit--4bit-|       
   -- REG_R6  -->  | ... obligatory '0'  ...    |  0  |  0  |
-  REG_R(6)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
-  REG_R(6)(7 downto 4)   <= conv_std_logic_vector(7, 4);  -- Demo number
-  REG_R(6)(31 downto 8)  <= (others => '0');
+  REG_R(VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
+  REG_R(VERSION)(7 downto 4)   <= conv_std_logic_vector(7, 4);  -- Demo number
+  REG_R(VERSION)(31 downto 8)  <= (others => '0');
   
   REG_R(5) <= x"DEADBEEF";
   
@@ -154,52 +227,34 @@ begin
    
   
   
-  proc_onof : process(LCLK)
-   variable onoff : std_logic := '0';
-  begin
-    if rising_edge(LCLK) then
-      if REG_RW(0)(0) = '0' then
-        onoff := '0';
-      else
-        onoff := not onoff;
-      end if;
-      GOUT(0) <= onoff;
-      GOUT(1) <= not onoff;  
-    end if;
-	 
-   REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
-   REG_R(4) <= std_logic_vector(counter(31 downto 0));
-  
-  end process proc_onof;
-  
+--  proc_onof : process(LCLK)
+--   variable onoff : std_logic := '0';
+--  begin
+--    if rising_edge(LCLK) then
+--      if REG_RW(0)(0) = '0' then
+--        onoff := '0';
+--      else
+--        onoff := not onoff;
+--      end if;
+--      GOUT(0) <= onoff;
+--      GOUT(1) <= not onoff;  
+--    end if;
+--	 
+--  end process proc_onof;
+--  
   
   proc_flipReg : process(LCLK)
   begin
     if rising_edge(LCLK) then
-      counter <= counter + 1;       
+      counter <= counter + 1;
+      REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
+		REG_R(4) <= std_logic_vector(counter(31 downto 0));    
     end if;
   end process proc_flipReg;
 
   
-
   
-    
-  instance_LB_INT: V1495_regs_communication 
-    port map (
-      -- Local Bus in/out signals
-      nLBRES      => nLBRES,
-      nBLAST      => nBLAST,   
-      WnR         => WnR,      
-      nADS        => nADS,     
-      LCLK        => LCLK,     
-      nREADY      => nREADY,   
-      nINT        => nINT,     
-      LAD         => LAD,
-      WR_DLY_CMD  => WR_DLY_CMD,
-      -- Internal Registers
-      REG_R => REG_R,
-      REG_RW => REG_RW
-      );
+  
   
  
 end rtl;
