@@ -119,9 +119,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
   
 begin
 
-  --allData <= C & B & A;
-  mask <= x"00000000_00000000_00000007";
-  
+  mask <= REG_RW(C_MASK) & REG_RW(B_MASK) & REG_RW(A_MASK);
+    
   
   -- Port Output Enable (0=Output, 1=Input)
   nOED  <=  '0';    -- Output Enable Port D (only for A395D)
@@ -143,6 +142,26 @@ begin
   
   ctrlreg	  <= X"00000013";--REG_RW(3);
   
+  	inst_regs :  V1495_regs_communication
+		port map(
+		  -- Local Bus in/out signals
+		  nLBRES     => nLBRES,
+		  nBLAST     => nBLAST,
+		  WnR        => WnR,
+		  nADS       => nADS,
+		  LCLK       => LCLK,
+		  nREADY     => nREADY,
+		  nINT       => nINT,
+		  LAD        => LAD,
+		  wr_dly_cmd => wr_dly_cmd,
+		  
+		  REG_R  => REG_R,
+		  REG_RW => REG_RW
+		);
+  
+  
+  
+  
   proc_data_pipeline : process(otherClk)
   begin
     if rising_edge(otherClk) then
@@ -156,7 +175,7 @@ begin
   port map(
 	clk => otherClk,
 	reset => not nLBRES,
-	a_gate_width => x"0000002e",
+	a_gate_width => REG_RW(a_gate_width),
 	channel_mask => mask,
 	data_in => allData,
 	operation => '0',
@@ -243,16 +262,16 @@ begin
 --  end process proc_onof;
 --  
   
-  proc_flipReg : process(LCLK)
-  begin
-    if rising_edge(LCLK) then
-      counter <= counter + 1;
-      REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
-		REG_R(4) <= std_logic_vector(counter(31 downto 0));    
-    end if;
-  end process proc_flipReg;
-
-  
+--  proc_flipReg : process(LCLK)
+--  begin
+--    if rising_edge(LCLK) then
+--      counter <= counter + 1;
+--      REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
+--		REG_R(4) <= std_logic_vector(counter(31 downto 0));    
+--    end if;
+--  end process proc_flipReg;
+--
+--  
   
   
   

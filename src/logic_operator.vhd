@@ -5,6 +5,7 @@ use IEEE.std_Logic_arith.all;
 use IEEE.std_Logic_unsigned.all;
 use work.components.all;
 use work.V1495_regs.all;
+use work.functions.all;
 
 
 entity logic_operator is 
@@ -16,7 +17,7 @@ entity logic_operator is
 	 a_gate_width : in std_logic_vector(31 downto 0);
 	 operation : in std_logic;
 	 result : out std_logic_vector(95 downto 0);
-	 setBits : out natural
+	 new_result : out std_logic
   );
 end entity logic_operator;
 
@@ -31,32 +32,7 @@ architecture behavioral of logic_operator is
   type t_window_state is (IDLE, OPEN_WINDOW);
   signal window_state : t_window_state;
   
-  function    check_for_one( value: std_logic_vector ) return std_logic is
-    variable compare: std_logic_vector( (value'length-1) downto 0) :=  (others => '0');
-    variable holder: std_logic_vector( (value'length-1) downto 0);
-    variable res: std_logic;
-  begin
-    
-    holder := not( not(value) and not(compare));
-    if(holder = compare) then
-      res := '0';
-    else
-      res := '1';
-    end if;
-  return res; end function;
-  
-  function bits_set(v : std_logic_vector) return natural is
-    variable n : natural := 0;
-  begin
-  for i in v'range loop
-    if v(i) = '1' then
-      n := n + 1;
-    end if;
-  end loop;
-  return n;
-  end function bits_set;
-  
-  
+  signal setBits : natural;
 
 begin
 
@@ -71,12 +47,14 @@ begin
 			  foundHits <= (others => '0');
 			  windowOpen <= '0';
 			  window := (others => '0');
-			  window_state <= IDLE;			  
+			  window_state <= IDLE;		
+		     new_result <= '0';	  
 			else
 			  case window_state is
 			    
 			
 			    when IDLE =>
+		         new_result <= '0';	  
 				   if check_for_one(maskedData) = '1' then
 					  foundHits <= maskedData;
 					  window(0) := '1';
@@ -96,13 +74,17 @@ begin
 					  windowOpen <= '0';
 					  if(bits_set(foundHits) > 1) then
 					    result <= foundHits;
+		             new_result <= '1';
+					  else
+					    new_result <= '0';	  
 					  end if;
 					else
+		           new_result <= '0';	  
 					  window := window + 1;
 					  window_state <= OPEN_WINDOW;
 					  windowOpen <= '1';
 					  if check_for_one(maskedData) then
-					    foundHits <= foundHits or maskedData;
+					    foundHits <= foundHits or maskedData;		
 					  end if;
 					end if;
 					  

@@ -16,7 +16,7 @@ package V1495_regs IS
   type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
 
   constant a_counter : integer := 3;
-  constant a_gate_width : integer := 0;
+  constant a_gate_width : integer := 4;
   
   constant A_MASK : integer :=5;
   constant B_MASK : integer :=6;

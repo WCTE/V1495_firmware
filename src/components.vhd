@@ -54,10 +54,7 @@ PACKAGE components is
 			nREADY     : out    std_logic;
 			nINT       : out    std_logic;
 			LAD        : inout  std_logic_vector(15 DOWNTO 0);
-      wr_dly_cmd : out	  std_logic_vector( 1 DOWNTO 0);
-			
-		
-		
+			wr_dly_cmd : out	  std_logic_vector( 1 DOWNTO 0);
 		REG_R : in reg_data(7 downto 0);
 		REG_RW : buffer reg_data(7 downto 0)
 		

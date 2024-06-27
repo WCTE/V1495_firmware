@@ -52,13 +52,10 @@ begin
 		variable rreg, wreg   : std_logic_vector(31 downto 0);
   begin
     if (nLBRES = '0') then
-      REG_RW(1)     <= (others => '1');
-      REG_RW(2)     <= (others => '0');
-      REG_RW(3)     <= X"00000013";    --Default value
-      REG_RW(4)     <= X"0000004F";    --Default value
-      REG_RW(5)     <= X"0000000F";    --Default value
-      REG_RW(6)     <= X"CAFECAFE";    --Default value
-      REG_RW(7)     <= X"00000000";    --Default value
+      REG_RW(a_gate_width)     <= x"0000002e";
+      REG_RW(A_MASK)     <= X"00000007";    --Default value
+      REG_RW(B_MASK)     <= X"00000000";    --Default value
+      REG_RW(C_MASK)     <= X"00000000";    --Default value
       nREADY      <= '1';
       LADoe       <= '0';
       ADDR        <= (others => '0');
