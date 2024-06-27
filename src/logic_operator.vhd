@@ -15,7 +15,8 @@ entity logic_operator is
 	 data_in : in std_logic_vector(95 downto 0);
 	 a_gate_width : in std_logic_vector(31 downto 0);
 	 operation : in std_logic;
-	 result : out std_logic_vector(95 downto 0)
+	 result : out std_logic_vector(95 downto 0);
+	 setBits : out natural
   );
 end entity logic_operator;
 
@@ -43,6 +44,18 @@ architecture behavioral of logic_operator is
       res := '1';
     end if;
   return res; end function;
+  
+  function bits_set(v : std_logic_vector) return natural is
+    variable n : natural := 0;
+  begin
+  for i in v'range loop
+    if v(i) = '1' then
+      n := n + 1;
+    end if;
+  end loop;
+  return n;
+  end function bits_set;
+  
   
 
 begin
@@ -81,7 +94,9 @@ begin
 					  window := (others => '0');
 					  window_state <= IDLE;
 					  windowOpen <= '0';
-					  result <= foundHits;
+					  if(bits_set(foundHits) > 1) then
+					    result <= foundHits;
+					  end if;
 					else
 					  window := window + 1;
 					  window_state <= OPEN_WINDOW;
@@ -97,7 +112,7 @@ begin
 		 end if;
 	  end process proc_window;
 	  	 			
-
+     setBits <= bits_set(foundHits);
 
 
 end architecture behavioral;
