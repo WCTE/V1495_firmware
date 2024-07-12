@@ -30,7 +30,7 @@ entity HyperK_WCTE_V1495_top is
     -- Front Panel Ports
     A        : IN     std_logic_vector (31 DOWNTO 0);  -- In A (32 x LVDS/ECL)
     B        : IN     std_logic_vector (31 DOWNTO 0);  -- In B (32 x LVDS/ECL)
-    C        : IN     std_logic_vector (31 DOWNTO 0);  -- In C (32 x LVDS/ECL)
+    C        : OUT     std_logic_vector (31 DOWNTO 0);  -- In C (32 x LVDS/ECL)
     D        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out D (I/O Expansion)
     E        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out E (I/O Expansion)
     F        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out F (I/O Expansion)
@@ -98,8 +98,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
   --------------------------
   
   signal REG_R : reg_data(7 downto 0);
-  signal REG_RW : reg_data(7 downto 0);
-  
+  signal REG_RW : reg_data(53 downto 0);
+    
 	-- Data Producer signals
   signal wr_dly_cmd       : std_logic_vector( 1 downto 0) := (others => '0');
   signal wr_dly           : std_logic_vector( 1 downto 0) := (others => '0');
@@ -117,13 +117,66 @@ architecture rtl of HyperK_WCTE_V1495_top is
   
   signal otherClk : std_logic;
   
-begin
-
-  mask <= REG_RW(C_MASK) & REG_RW(B_MASK) & REG_RW(A_MASK);
+  signal prepared_signals : std_logic_vector(95 downto 0);
     
   
+begin
+
+  mask <= REG_RW(D_MASK) & REG_RW(B_MASK) & REG_RW(A_MASK);
+  
+  
+  blk_pre_logic : block
+    attribute preserve_for_debug : boolean;
+
+  
+  
+    signal delay_regs : reg_data(23 downto 0);
+    signal gate_regs : reg_data(23 downto 0);
+	 
+    signal delays : t_slv_v8(96 downto 0);
+    signal gates : t_slv_v8(96 downto 0);
+	 
+	 attribute preserve_for_debug of delay_regs : signal is true;
+    attribute preserve_for_debug of delays : signal is true;
+
+	 
+  begin
+  
+  delay_regs <= REG_RW(29 downto 6);
+  gate_regs  <= REG_RW(53 downto 30);
+  
+    gen_level_1 : for i in 23 downto 0 generate  
+      delays(4*i) <= delay_regs(i)(7 downto 0);
+	   delays(4*i+1) <= delay_regs(i)(15 downto 8);
+      delays(4*i+2) <= delay_regs(i)(23 downto 16);
+      delays(4*i+3) <= delay_regs(i)(31 downto 24);
+		
+      gates(4*i) <= gate_regs(i)(7 downto 0);
+	   gates(4*i+1) <= gate_regs(i)(15 downto 8);
+      gates(4*i+2) <= gate_regs(i)(23 downto 16);
+      gates(4*i+3) <= gate_regs(i)(31 downto 24);
+    end generate; 
+	 
+	gen_pre_logic : for i in 95 downto 0 generate
+	
+	  inst_pre_logic : pre_logic 
+       port map(
+	    clk => otherClk,
+	    reset => not nLBRES,
+	    data_in => allData(i),
+	    delay => delays(i),
+	    gate  => gates(i),
+       data_out => prepared_signals(i)
+       );
+	end generate; 
+	 
+  
+  end block blk_pre_logic;
+  
+      
+  
   -- Port Output Enable (0=Output, 1=Input)
-  nOED  <=  '0';    -- Output Enable Port D (only for A395D)
+  nOED  <=  '1';    -- Output Enable Port D (only for A395D)
   nOEG  <=  '0';    -- Output Enable Port G
   D     <=  D_Expan	when IDD = "011"  else (others => 'Z');
   
@@ -141,6 +194,36 @@ begin
   WR_DLY1   <=  wr_dly(1);
   
   ctrlreg	  <= X"00000013";--REG_RW(3);
+  
+  
+  proc_data_pipeline : process(otherClk)
+  begin
+    if rising_edge(otherClk) then
+	   allData <= D & B & A;
+	 end if;
+  end process proc_data_pipeline;
+  
+  
+  
+  
+  inst_logic : logic_unit
+ port map(
+	clk => otherClk,
+	reset => nLBRES,
+	data_in => prepared_signals,
+	mask => mask,
+	type_i => '1',
+	maskedData => open,
+	result => open
+ );
+  
+  
+  
+  
+  
+  
+  
+  
   
   	inst_regs :  V1495_regs_communication
 		port map(
@@ -161,50 +244,107 @@ begin
   
   
   
+--  blk_CDC : block
+--    signal data_in : std_logic_vector(15 downto 0);
+--    signal data_out : std_logic_vector(15 downto 0);
+--	 signal wrreq_sig : std_logic;
+--	 signal rdreq_sig : std_logic;
+--	 signal wrfull_sig : std_logic;
+--	 signal rdempty_sig : std_logic;
+--  begin
+--  
+--  proc_pre_pipe : process(lclk)
+--	  begin	  
+--	    if rising_edge(lclk) then 
+--		   data_in <=  & ;
+--		 end if;
+--	  end process proc_pre_pipe;
+--  
+--  CDC_fifo_inst : CDC_fifo PORT MAP (
+--                data     => data_in,
+--                rdclk    => otherClk,
+--                rdreq    => rdreq_sig,
+--					 
+--                wrclk    => LCLK,
+--                wrreq    => wrreq_sig,
+--                q        => data_out,
+--					 
+--                rdempty  => rdempty_sig,
+--                wrfull   => wrfull_sig
+--        );
+--		  
+--	  wrreq_sig <= not wrfull_sig;
+--	  rdreq_sig <= not rdempty_sig;
+--		  
+--	  proc_pipe : process(otherClk)
+--	  begin	  
+--	    if rising_edge(otherClk) then 
+--		   gate <= data_out(7 downto 0);		  
+--	      delay <= data_out(15 downto 8);		 
+--		 end if;
+--	  end process proc_pipe;
+--  
+--  end block blk_CDC;
   
-  proc_data_pipeline : process(otherClk)
-  begin
-    if rising_edge(otherClk) then
-	   allData <= C & B & A;
-	 end if;
-  end process proc_data_pipeline;
   
   
   
-  inst_logic : logic_operator
-  port map(
-	clk => otherClk,
-	reset => not nLBRES,
-	a_gate_width => REG_RW(a_gate_width),
-	channel_mask => mask,
-	data_in => allData,
-	operation => '0',
-	result => hits
-  );
+
   
+  
+  
+--  inst_logic : logic_operator
+--  port map(
+--	clk => otherClk,
+--	reset => not nLBRES,
+--	a_gate_width => REG_RW(a_gate_width),
+--	channel_mask => mask,
+--	data_in => allData,
+--	operation => '0',
+--	result => hits
+--  );
+-- 
+--	gen_many_logic : for i in 2500 downto 0 generate
+--	  signal hit_s : std_logic_vector(95 downto 0);
+--	begin
+--	  inst_logic : logic_operator
+--     port map(
+--	    clk => otherClk,
+--	    reset => not nLBRES,
+--    	a_gate_width => REG_RW(a_gate_width),
+--	    channel_mask => mask,
+--	    data_in => allData,
+--	    operation => '0',
+--	    result => hit_s
+--    );
+--	
+--	end generate gen_many_logic;
+
+
+ 
   --GOUT(1) <= A(0);  
   
-  
-    instance_gdgen: gdgen
-    port map(
-      lclk     			=> lclk,
-      GIN(0)           => not nLBRES,
-		GIN(1) => A(0),
-      ctrlreg       => ctrlreg,
-      pulse         => pulse,
-      wr_dly_cmd    => wr_dly_cmd,
-      wr_dly        => wr_dly,
-      ddly          => DDLY,
-      start	        => START,
-      nstart	      => nSTART,
-      out_pgdl	    => open,
-      out_fgdl	    => open,
-      delay_pdl     => x"10", --REG_RW(6)(7 downto 0),
-      gate_pdl      => x"ff", --REG_RW(7)(7 downto 0),
-      delay_fdl     => X"00000040",--REG_RW(4),
-      gate_fdl      =>  X"00000001"--REG_RW(5)
-    );
-    
+--  
+--    instance_gdgen: gdgen
+--    port map(
+--      lclk     			=> lclk,
+--      GIN(0)           => not nLBRES,
+--		GIN(1) => A(0),
+--      ctrlreg       => ctrlreg,
+--      pulse         => pulse,
+--      wr_dly_cmd    => wr_dly_cmd,
+--      wr_dly        => wr_dly,
+--      ddly          => DDLY,
+--      start	        => START,
+--      nstart	      => nSTART,
+--      out_pgdl	    => open,
+--      out_fgdl	    => open,
+--      delay_pdl     => x"10", --REG_RW(6)(7 downto 0),
+--      gate_pdl      => x"ff", --REG_RW(7)(7 downto 0),
+--      delay_fdl     => X"00000040",--REG_RW(4),
+--      gate_fdl      =>  X"00000001"--REG_RW(5)
+--    );
+--    
 	 
 	inst_pll : ALTERA_CMN_PLL
 	generic map(
@@ -233,16 +373,16 @@ begin
   
   REG_R(5) <= x"DEADBEEF";
   
-  proc_reg_switch : process(LCLK)
-  begin
-    if rising_edge(LCLK) then
-      if REG_RW(6) = x"CAFECAFE" then
-        REG_R(1) <= x"DEADBEEF";
-      else
-        REG_R(1) <= x"BEEFBEEF";
-      end if;
-    end if;
-  end process proc_reg_switch;
+--  proc_reg_switch : process(LCLK)
+--  begin
+--    if rising_edge(LCLK) then
+--      if REG_RW(6) = x"CAFECAFE" then
+--        REG_R(1) <= x"DEADBEEF";
+--      else
+--        REG_R(1) <= x"BEEFBEEF";
+--      end if;
+--    end if;
+--  end process proc_reg_switch;
    
   
   

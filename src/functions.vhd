@@ -11,11 +11,41 @@ package functions IS
   function check_for_one( value: std_logic_vector ) return std_logic;
   -- Return how many bits in a std_logic_vector are '1'
   function bits_set(v : std_logic_vector) return natural;
+    -- Calculates: ceil(ld(arg))
+  function log2ceil(arg : positive) return natural;
+  
+	function ite(cond : boolean; value1 : integer; value2 : integer) return integer;
+  
 
 end package functions;
 
 
 package body functions is
+	function ite(cond : boolean; value1 : integer; value2 : integer) return integer is
+	begin
+		if cond then
+			return value1;
+		else
+			return value2;
+		end if;
+	end function;
+
+
+	function log2ceil(arg : positive) return natural is
+		variable tmp : positive;
+		variable log : natural;
+	begin
+		if arg = 1 then	return 0; end if;
+		tmp := 1;
+		log := 0;
+		while arg > tmp loop
+			tmp := tmp * 2;
+			log := log + 1;
+		end loop;
+		return log;
+	end function;
+
+
 
   -- check if one if the bits in a std_logic_vector is '1'
   function    check_for_one( value: std_logic_vector ) return std_logic is
@@ -43,5 +73,7 @@ package body functions is
   end loop;
   return n;
   end function bits_set;
+  
+  
 
 end package body functions;

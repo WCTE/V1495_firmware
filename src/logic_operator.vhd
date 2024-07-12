@@ -1,12 +1,12 @@
 
 library IEEE;
 use IEEE.std_Logic_1164.all;
-use IEEE.std_Logic_arith.all;
+--use IEEE.std_Logic_arith.all;
 use IEEE.std_Logic_unsigned.all;
+use IEEE.NUMERIC_STD.ALL; 
 use work.components.all;
 use work.V1495_regs.all;
 use work.functions.all;
-
 
 entity logic_operator is 
   port(

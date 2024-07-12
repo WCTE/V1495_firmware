@@ -16,7 +16,9 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
+use IEEE.numeric_std.all;
 use work.V1495_regs.all;
+use work.functions.all;
 
 PACKAGE components is
 
@@ -40,7 +42,19 @@ PACKAGE components is
   );
   end component gdgen ;
   
-  
+  component CDC_fifo IS
+	PORT
+	(
+		data		: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+		rdclk		: IN STD_LOGIC ;
+		rdreq		: IN STD_LOGIC ;
+		wrclk		: IN STD_LOGIC ;
+		wrreq		: IN STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+		rdempty		: OUT STD_LOGIC ;
+		wrfull		: OUT STD_LOGIC 
+	);
+END component CDC_fifo;
 	
 	
 	component V1495_regs_communication is
@@ -56,11 +70,34 @@ PACKAGE components is
 			LAD        : inout  std_logic_vector(15 DOWNTO 0);
 			wr_dly_cmd : out	  std_logic_vector( 1 DOWNTO 0);
 		REG_R : in reg_data(7 downto 0);
-		REG_RW : buffer reg_data(7 downto 0)
+		REG_RW : buffer reg_data(53 downto 0)
 		
 		);
 	end component V1495_regs_communication ;
 
+	component pre_logic is
+ port(
+	clk: in std_logic;
+   reset : in std_logic;
+	data_in : in std_logic;
+	delay : in std_logic_vector(7 downto 0);
+	gate : in std_logic_vector(7 downto 0);
+   data_out: out std_logic
+ );
+end component pre_logic;
+	
+	
+component logic_unit is
+ port(
+	clk: in std_logic;
+	reset : in std_logic;
+	data_in : in std_logic_vector(95 downto 0);
+	mask : in std_logic_vector(95 downto 0);
+	type_i : in std_logic;
+	maskedData : out std_logic_vector(95 downto 0);
+	result : out std_logic
+ );
+end component logic_unit;	
 
 	component logic_operator is 
      port(
@@ -88,6 +125,22 @@ port (
   locked          : out std_logic := '0'
 );
 end component ALTERA_CMN_PLL;
+
+
+component delay_fifo
+	PORT
+	(
+		clock		: IN STD_LOGIC ;
+		data		: IN STD_LOGIC_VECTOR (0 DOWNTO 0);
+		rdreq		: IN STD_LOGIC ;
+		wrreq		: IN STD_LOGIC ;
+		empty		: OUT STD_LOGIC ;
+		full		: OUT STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (0 DOWNTO 0);
+		usedw		: OUT STD_LOGIC_VECTOR (1 DOWNTO 0)
+	);
+end component;
+
 	
 	
 	component V1495_Demo4 is
