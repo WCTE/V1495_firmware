@@ -20,7 +20,6 @@ library IEEE;
 use IEEE.std_Logic_1164.all;
 use IEEE.std_Logic_arith.all;
 use IEEE.std_Logic_unsigned.all;
-use work.components.all;
 use work.V1495_regs.all;
 
 
@@ -98,7 +97,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   --------------------------
   
   signal REG_R : reg_data(7 downto 0);
-  signal REG_RW : reg_data(53 downto 0);
+  signal REG_RW : reg_data(83 downto 0);
     
 	-- Data Producer signals
   signal wr_dly_cmd       : std_logic_vector( 1 downto 0) := (others => '0');
@@ -111,121 +110,25 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal counter : unsigned(63 downto 0);
   
   signal allData : std_logic_vector(95 downto 0);
-  signal mask : std_logic_vector(95 downto 0);
   
   signal hits : std_logic_vector(95 downto 0);
   
   signal otherClk : std_logic;
   
   signal prepared_signals : std_logic_vector(95 downto 0);
+  
+  signal level1_result : std_logic_vector(9 downto 0);
     
   
 begin
 
-  mask <= REG_RW(D_MASK) & REG_RW(B_MASK) & REG_RW(A_MASK);
-  
-  
-  blk_pre_logic : block
-    attribute preserve_for_debug : boolean;
+  -- firmware version
+  REG_R(VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
+  REG_R(VERSION)(7 downto 4)   <= conv_std_logic_vector(0, 4);  -- Demo number
 
   
-  
-    signal delay_regs : reg_data(23 downto 0);
-    signal gate_regs : reg_data(23 downto 0);
-	 
-    signal delays : t_slv_v8(96 downto 0);
-    signal gates : t_slv_v8(96 downto 0);
-	 
-	 attribute preserve_for_debug of delay_regs : signal is true;
-    attribute preserve_for_debug of delays : signal is true;
-
-	 
-  begin
-  
-  delay_regs <= REG_RW(29 downto 6);
-  gate_regs  <= REG_RW(53 downto 30);
-  
-    gen_level_1 : for i in 23 downto 0 generate  
-      delays(4*i) <= delay_regs(i)(7 downto 0);
-	   delays(4*i+1) <= delay_regs(i)(15 downto 8);
-      delays(4*i+2) <= delay_regs(i)(23 downto 16);
-      delays(4*i+3) <= delay_regs(i)(31 downto 24);
-		
-      gates(4*i) <= gate_regs(i)(7 downto 0);
-	   gates(4*i+1) <= gate_regs(i)(15 downto 8);
-      gates(4*i+2) <= gate_regs(i)(23 downto 16);
-      gates(4*i+3) <= gate_regs(i)(31 downto 24);
-    end generate; 
-	 
-	gen_pre_logic : for i in 95 downto 0 generate
-	
-	  inst_pre_logic : pre_logic 
-       port map(
-	    clk => otherClk,
-	    reset => not nLBRES,
-	    data_in => allData(i),
-	    delay => delays(i),
-	    gate  => gates(i),
-       data_out => prepared_signals(i)
-       );
-	end generate; 
-	 
-  
-  end block blk_pre_logic;
-  
-      
-  
-  -- Port Output Enable (0=Output, 1=Input)
-  nOED  <=  '1';    -- Output Enable Port D (only for A395D)
-  nOEG  <=  '0';    -- Output Enable Port G
-  D     <=  D_Expan	when IDD = "011"  else (others => 'Z');
-  
-  
-  nOEDDLY0  <=  '0';  -- Output Enable for PDL0 (active low)
-  nOEDDLY1  <=  '0';  -- Output Enable for PDL1 (active low)
-  
-  -- Port Level Select (0=NIM, 1=TTL)
-  SELD      <=  ctrlreg(0);    -- Output Level Select Port D (only for A395D)
-  SELG      <=  ctrlreg(1);    -- Output Level Select Port G
-
-  DIRDDLY   <=  ctrlreg(4);  -- Direction of PDL data (0 => Read Dip Switches)
-                              --                       (1 => Write from FPGA)                           
-  WR_DLY0   <=  wr_dly(0);
-  WR_DLY1   <=  wr_dly(1);
-  
-  ctrlreg	  <= X"00000013";--REG_RW(3);
-  
-  
-  proc_data_pipeline : process(otherClk)
-  begin
-    if rising_edge(otherClk) then
-	   allData <= D & B & A;
-	 end if;
-  end process proc_data_pipeline;
-  
-  
-  
-  
-  inst_logic : logic_unit
- port map(
-	clk => otherClk,
-	reset => nLBRES,
-	data_in => prepared_signals,
-	mask => mask,
-	type_i => '1',
-	maskedData => open,
-	result => open
- );
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  	inst_regs :  V1495_regs_communication
+  -- Register interface
+  inst_regs : entity work.V1495_regs_communication
 		port map(
 		  -- Local Bus in/out signals
 		  nLBRES     => nLBRES,
@@ -244,110 +147,161 @@ begin
   
   
   
---  blk_CDC : block
---    signal data_in : std_logic_vector(15 downto 0);
---    signal data_out : std_logic_vector(15 downto 0);
---	 signal wrreq_sig : std_logic;
---	 signal rdreq_sig : std_logic;
---	 signal wrfull_sig : std_logic;
---	 signal rdempty_sig : std_logic;
---  begin
---  
---  proc_pre_pipe : process(lclk)
---	  begin	  
---	    if rising_edge(lclk) then 
---		   data_in <=  & ;
---		 end if;
---	  end process proc_pre_pipe;
---  
---  CDC_fifo_inst : CDC_fifo PORT MAP (
---                data     => data_in,
---                rdclk    => otherClk,
---                rdreq    => rdreq_sig,
---					 
---                wrclk    => LCLK,
---                wrreq    => wrreq_sig,
---                q        => data_out,
---					 
---                rdempty  => rdempty_sig,
---                wrfull   => wrfull_sig
---        );
---		  
---	  wrreq_sig <= not wrfull_sig;
---	  rdreq_sig <= not rdempty_sig;
---		  
---	  proc_pipe : process(otherClk)
---	  begin	  
---	    if rising_edge(otherClk) then 
---		   gate <= data_out(7 downto 0);		  
---	      delay <= data_out(15 downto 8);		 
---		 end if;
---	  end process proc_pipe;
---  
---  end block blk_CDC;
+  -- Pre logic treatment  
+  blk_pre_logic : block
+    signal delay_regs : reg_data(23 downto 0);
+    signal gate_regs : reg_data(23 downto 0);
+	 
+    signal delays : t_slv_v8(96 downto 0);
+    signal gates : t_slv_v8(96 downto 0);
+	 
+  begin
+  
+    proc_data_pipeline : process(otherClk)
+    begin
+      if rising_edge(otherClk) then
+        delay_regs <= REG_RW(A_RANGE_DELAY_PRE(1) downto A_RANGE_DELAY_PRE(0));
+        gate_regs  <= REG_RW(A_RANGE_GATE_PRE(1) downto A_RANGE_GATE_PRE(0));
+	   end if;
+    end process proc_data_pipeline;
   
   
+    gen_level_1 : for i in 23 downto 0 generate 	 
+      delays(4*i) <= delay_regs(i)(7 downto 0);
+	   delays(4*i+1) <= delay_regs(i)(15 downto 8);
+      delays(4*i+2) <= delay_regs(i)(23 downto 16);
+      delays(4*i+3) <= delay_regs(i)(31 downto 24);
+		
+      gates(4*i) <= gate_regs(i)(7 downto 0);
+	   gates(4*i+1) <= gate_regs(i)(15 downto 8);
+      gates(4*i+2) <= gate_regs(i)(23 downto 16);
+      gates(4*i+3) <= gate_regs(i)(31 downto 24);
+    end generate; 
+
+   	
+ 
+	gen_pre_logic : for i in 95 downto 0 generate
+	
+	
+	  inst_pre_logic : entity work.pre_logic 
+       port map(
+	    clk => otherClk,
+	    reset => not nLBRES,
+	    data_in => allData(i),
+	    delay => delays(i),
+	    gate  => gates(i),
+       data_out => prepared_signals(i)
+       );
+	end generate; 
+	 
   
+  end block blk_pre_logic;
+  
+      
   
 
   
   
+  proc_data_pipeline : process(otherClk)
+  begin
+    if rising_edge(otherClk) then
+	   allData <= D & B & A;
+	 end if;
+  end process proc_data_pipeline;
   
---  inst_logic : logic_operator
---  port map(
---	clk => otherClk,
---	reset => not nLBRES,
---	a_gate_width => REG_RW(a_gate_width),
---	channel_mask => mask,
---	data_in => allData,
---	operation => '0',
---	result => hits
---  );
--- 
---	gen_many_logic : for i in 2500 downto 0 generate
---	  signal hit_s : std_logic_vector(95 downto 0);
---	begin
---	  inst_logic : logic_operator
---     port map(
+  
+  
+  -- Level 1 logic
+  gen_logic_level_1 : for i in 9 downto 0 generate
+    signal mask : std_logic_vector(95 downto 0);
+	 signal result : std_logic;
+    signal l_type : std_logic;
+  begin
+    
+	 proc_data_pipeline : process(otherClk)
+    begin
+      if rising_edge(otherClk) then
+        mask <= REG_RW(D_MASK(i)) & REG_RW(B_MASK(i)) & REG_RW(A_MASK(i));
+		  l_type <= REG_RW(A_TYPE)(i);
+	   end if;
+	 end process proc_data_pipeline;
+  
+    inst_logic : entity work.logic_unit
+	 generic map(
+	   bus_width => 96
+	 )
+    port map(
+	   clk => otherClk,
+	   reset => not nLBRES,
+	   data_in => prepared_signals(95 downto 0),
+	   mask => mask(95 downto 0),
+	   type_i => l_type,
+	   result => result
+    );
+	 
+	 inst_counter : entity work.counter
+    port map(
+      clk => otherClk,
+	   reset => not nLBRES,
+	   count_en => '1',
+	   data_in => result,
+	   count_out => open   
+    );	 
+	 
+	 level1_result(i) <= result;
+	 
+	 -- need three registers for each of the delay and gate.
+	 
+	 
+--	 inst_level1_treatment : entity work.pre_logic 
+--       port map(
 --	    clk => otherClk,
 --	    reset => not nLBRES,
---    	a_gate_width => REG_RW(a_gate_width),
---	    channel_mask => mask,
---	    data_in => allData,
---	    operation => '0',
---	    result => hit_s
---    );
---	
---	end generate gen_many_logic;
-
-
- 
-  --GOUT(1) <= A(0);  
-  
---  
---    instance_gdgen: gdgen
---    port map(
---      lclk     			=> lclk,
---      GIN(0)           => not nLBRES,
---		GIN(1) => A(0),
---      ctrlreg       => ctrlreg,
---      pulse         => pulse,
---      wr_dly_cmd    => wr_dly_cmd,
---      wr_dly        => wr_dly,
---      ddly          => DDLY,
---      start	        => START,
---      nstart	      => nSTART,
---      out_pgdl	    => open,
---      out_fgdl	    => open,
---      delay_pdl     => x"10", --REG_RW(6)(7 downto 0),
---      gate_pdl      => x"ff", --REG_RW(7)(7 downto 0),
---      delay_fdl     => X"00000040",--REG_RW(4),
---      gate_fdl      =>  X"00000001"--REG_RW(5)
---    );
---    
+--	    data_in => level1_result(i),
+--	    delay => delays(i),
+--	    gate  => gates(i),
+--       data_out => level1_result(i)
+--       );
 	 
-	inst_pll : ALTERA_CMN_PLL
-	generic map(
+ 
+  end generate gen_logic_level_1;
+  
+
+  gen_logic_level_2 : for i in 3 downto 0 generate
+    signal result : std_logic;
+	 signal l_type : std_logic;
+    
+  begin  
+      
+    l_type <= '0';
+  
+    inst_logic : entity work.logic_unit
+	 generic map(
+	   bus_width => 10
+	 )
+    port map(
+	   clk => otherClk,
+	   reset => not nLBRES,
+	   data_in => level1_result,
+	   mask => (others => '1'),
+	   type_i => l_type,
+	   result => result
+    );
+	 
+	 inst_counter : entity work.counter
+    port map(
+      clk => otherClk,
+	   reset => not nLBRES,
+	   count_en => '1',
+	   data_in => result,
+	   count_out => open   
+    );	 
+  
+  
+  end generate gen_logic_level_2;
+  
+       inst_pll : entity work.ALTERA_CMN_PLL
+       generic map(
      clk0_divide_by      => 8,
      clk0_duty_cycle     => 50,
      clk0_multiply_by    => 25,
@@ -359,59 +313,32 @@ begin
      clk_out_0  => otherClk,
      locked     => open
    );
-  
-  GOUT(0) <= lclk;
-  GOUT(1) <= otherClk;
+
   
   
- 
-  -- REG_R6  -->  |    ------ 24 bit ------   --4bit--4bit-|       
-  -- REG_R6  -->  | ... obligatory '0'  ...    |  0  |  0  |
-  REG_R(VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
-  REG_R(VERSION)(7 downto 4)   <= conv_std_logic_vector(7, 4);  -- Demo number
-  REG_R(VERSION)(31 downto 8)  <= (others => '0');
-  
-  REG_R(5) <= x"DEADBEEF";
-  
---  proc_reg_switch : process(LCLK)
---  begin
---    if rising_edge(LCLK) then
---      if REG_RW(6) = x"CAFECAFE" then
---        REG_R(1) <= x"DEADBEEF";
---      else
---        REG_R(1) <= x"BEEFBEEF";
---      end if;
---    end if;
---  end process proc_reg_switch;
-   
+
+   -- Port Output Enable (0=Output, 1=Input)
+  nOED  <=  '1';    -- Output Enable Port D (only for A395D)
+  nOEG  <=  '0';    -- Output Enable Port G
+  D     <=  D_Expan	when IDD = "011"  else (others => 'Z');
   
   
---  proc_onof : process(LCLK)
---   variable onoff : std_logic := '0';
---  begin
---    if rising_edge(LCLK) then
---      if REG_RW(0)(0) = '0' then
---        onoff := '0';
---      else
---        onoff := not onoff;
---      end if;
---      GOUT(0) <= onoff;
---      GOUT(1) <= not onoff;  
---    end if;
---	 
---  end process proc_onof;
---  
+  nOEDDLY0  <=  '0';  -- Output Enable for PDL0 (active low)
+  nOEDDLY1  <=  '0';  -- Output Enable for PDL1 (active low)
   
---  proc_flipReg : process(LCLK)
---  begin
---    if rising_edge(LCLK) then
---      counter <= counter + 1;
---      REG_R(a_counter) <= std_logic_vector(counter(55 downto 24));
---		REG_R(4) <= std_logic_vector(counter(31 downto 0));    
---    end if;
---  end process proc_flipReg;
---
---  
+  -- Port Level Select (0=NIM, 1=TTL)
+  SELD      <=  ctrlreg(0);    -- Output Level Select Port D (only for A395D)
+  SELG      <=  ctrlreg(1);    -- Output Level Select Port G
+
+  DIRDDLY   <=  ctrlreg(4);  -- Direction of PDL data (0 => Read Dip Switches)
+                              --                       (1 => Write from FPGA)                           
+  WR_DLY0   <=  wr_dly(0);
+  WR_DLY1   <=  wr_dly(1);
+  
+  ctrlreg	  <= X"00000013";--REG_RW(3);
+
+
+
   
   
   

@@ -16,13 +16,22 @@ package V1495_regs IS
   type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
   
   type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
+  
+  type t_int_v is array(natural range <>) of integer;
 
   constant a_counter : integer := 3;
   constant a_gate_width : integer := 4;
   
-  constant A_MASK : integer :=3;
-  constant B_MASK : integer :=4;
-  constant D_MASK : integer :=5;
+  
+  constant A_RANGE_DELAY_PRE : t_int_v(0 to 1) := (6, 29);
+  constant A_RANGE_GATE_PRE  : t_int_v(0 to 1) := (30, 53);
+ 
+ 
+  constant A_MASK : t_int_v(0 to 9) :=(54, 55, 56, 57, 58, 59, 60, 61, 62, 63);
+  constant B_MASK : t_int_v(0 to 9) :=(64, 65, 66, 67, 68, 69, 70, 71, 72, 73);
+  constant D_MASK : t_int_v(0 to 9) :=(74, 75, 76, 77, 78, 79, 80, 81, 82, 83);
+  
+  constant A_TYPE : integer := 0;
   
   constant VERSION : integer := 6;
 
@@ -45,7 +54,7 @@ package V1495_regs IS
                                                 x"1020",
                                                 x"1022");
 
-  constant a_reg_rw : reg_addresses(0 to 53) := (x"1024", --0
+  constant a_reg_rw : reg_addresses(0 to 83) := (x"1024", --0  Logic type register
                                                  x"1026",      
                                                  x"1028", --2
                                                  x"102a",
@@ -98,7 +107,38 @@ package V1495_regs IS
                                                  x"1088", --50
                                                  x"108a",
                                                  x"108c", --52
-                                                 x"108e");--53 (end of gate registers) end C
+                                                 x"108e", --53 (end of gate registers) end 
+                                                 x"1090", --54 A mask for logic unit 0
+                                                 x"1092", --55 A mask for logic unit 1
+                                                 x"1094", --56 A mask for logic unit 2
+                                                 x"1096", --57 A mask for logic unit 3 
+                                                 x"1098", --58 A mask for logic unit 4
+                                                 x"109a", --59 A mask for logic unit 5
+                                                 x"109c", --60 A mask for logic unit 6
+                                                 x"109e", --61 A mask for logic unit 7
+                                                 x"10a0", --62 A mask for logic unit 8
+                                                 x"10a2", --63 A mask for logic unit 9
+                                                 x"10a4",
+                                                 x"10a6",
+                                                 x"10a8",
+                                                 x"10aa",
+                                                 x"10ac",
+                                                 x"10ae",
+                                                 x"10b0",
+                                                 x"10b2",
+                                                 x"10b4",
+                                                 x"10b6",
+                                                 x"10b8",
+                                                 x"10ba",
+                                                 x"10bc",
+                                                 x"10be",
+                                                 x"10c0",
+                                                 x"10c2",
+                                                 x"10c4",
+                                                 x"10c6",
+                                                 x"10c8",
+                                                 x"10ca"
+																 );
 															 
 																 
 																 

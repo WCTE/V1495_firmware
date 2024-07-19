@@ -21,7 +21,7 @@ entity V1495_regs_communication is
     WR_DLY_CMD : out	std_logic_vector( 1 DOWNTO 0);
 
     REG_R  : in reg_data(7 downto 0);
-    REG_RW : buffer reg_data(53 downto 0)
+    REG_RW : buffer reg_data(83 downto 0)
 	 
 	);
 end V1495_regs_communication;
@@ -53,9 +53,9 @@ begin
   begin
     if (nLBRES = '0') then
       REG_RW(a_gate_width)     <= x"0000002e";
-      REG_RW(A_MASK)     <= X"00000007";    --Default value
-      REG_RW(B_MASK)     <= X"00000000";    --Default value
-      REG_RW(D_MASK)     <= X"00000000";    --Default value
+      REG_RW(A_MASK(0))     <= X"00000007";    --Default value
+      REG_RW(B_MASK(0))     <= X"00000000";    --Default value
+      REG_RW(D_MASK(0))     <= X"00000000";    --Default value
       nREADY      <= '1';
       LADoe       <= '0';
       ADDR        <= (others => '0');
@@ -95,7 +95,7 @@ begin
         when LBWRITEH =>   
           wreg  := LAD & DTL;  -- Get the higher 16 bits and create the 32 bit data
 			 
-			 l_reg_write : for k in 0 to 53 loop
+			 l_reg_write : for k in 0 to 83 loop
 			   if ADDR = a_reg_rw(k) then
 				  REG_RW(k) <= wreg;
 				end if;
@@ -111,7 +111,7 @@ begin
 				  rreg := REG_R(k);
 				end if;
 			 end loop;
-			 l_reg_read_write : for k in 0 to 53 loop
+			 l_reg_read_write : for k in 0 to 83 loop
 				if ADDR = a_reg_rw(k) then
 				  rreg := REG_RW(k);
 				end if;

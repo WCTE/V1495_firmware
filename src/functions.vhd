@@ -15,6 +15,9 @@ package functions IS
   function log2ceil(arg : positive) return natural;
   
 	function ite(cond : boolean; value1 : integer; value2 : integer) return integer;
+	
+	function and_reduct(slv : in std_logic_vector) return std_logic;
+	function or_reduct(slv : in std_logic_vector) return std_logic;
   
 
 end package functions;
@@ -73,6 +76,25 @@ package body functions is
   end loop;
   return n;
   end function bits_set;
+  
+  function and_reduct(slv : in std_logic_vector) return std_logic is
+  variable res_v : std_logic := '1';  -- Null slv vector will also return '1'
+begin
+  for i in slv'range loop
+    res_v := res_v and slv(i);
+  end loop;
+  return res_v;
+end function;
+
+function or_reduct(slv : in std_logic_vector) return std_logic is
+  variable res_v : std_logic := '0';  -- Null slv vector will also return '1'
+begin
+  for i in slv'range loop
+    res_v := res_v or slv(i);
+  end loop;
+  return res_v;
+end function;
+
   
   
 

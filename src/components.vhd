@@ -70,7 +70,7 @@ END component CDC_fifo;
 			LAD        : inout  std_logic_vector(15 DOWNTO 0);
 			wr_dly_cmd : out	  std_logic_vector( 1 DOWNTO 0);
 		REG_R : in reg_data(7 downto 0);
-		REG_RW : buffer reg_data(53 downto 0)
+		REG_RW : buffer reg_data(83 downto 0)
 		
 		);
 	end component V1495_regs_communication ;
@@ -94,22 +94,22 @@ component logic_unit is
 	data_in : in std_logic_vector(95 downto 0);
 	mask : in std_logic_vector(95 downto 0);
 	type_i : in std_logic;
-	maskedData : out std_logic_vector(95 downto 0);
 	result : out std_logic
  );
 end component logic_unit;	
 
-	component logic_operator is 
-     port(
-	    clk : in std_logic;
-	    reset : in std_logic;
-       channel_mask : in std_logic_vector(95 downto 0);
-	    data_in : in std_logic_vector(95 downto 0);
-	    a_gate_width : in std_logic_vector(31 downto 0);
-	    operation : in std_logic;
-	    result : out std_logic_vector(95 downto 0)
-     );
-   end component logic_operator;
+
+component counter is
+  port(
+    clk : in std_logic;
+	 reset : in std_logic;
+	 count_en : in std_logic;
+	 data_in : in std_logic;
+	 count_out : out std_logic_vector(31 downto 0)   
+  );
+end component counter;
+
+
 	
 	component ALTERA_CMN_PLL is
 generic (
@@ -126,20 +126,6 @@ port (
 );
 end component ALTERA_CMN_PLL;
 
-
-component delay_fifo
-	PORT
-	(
-		clock		: IN STD_LOGIC ;
-		data		: IN STD_LOGIC_VECTOR (0 DOWNTO 0);
-		rdreq		: IN STD_LOGIC ;
-		wrreq		: IN STD_LOGIC ;
-		empty		: OUT STD_LOGIC ;
-		full		: OUT STD_LOGIC ;
-		q		: OUT STD_LOGIC_VECTOR (0 DOWNTO 0);
-		usedw		: OUT STD_LOGIC_VECTOR (1 DOWNTO 0)
-	);
-end component;
 
 	
 	
@@ -206,6 +192,26 @@ end component;
 			LAD        : INOUT  std_logic_vector (15 DOWNTO 0)
 		);
 	end component V1495_Demo4;
+
+
+
+
+
+
+
+
+
+	component logic_operator is 
+     port(
+	    clk : in std_logic;
+	    reset : in std_logic;
+       channel_mask : in std_logic_vector(95 downto 0);
+	    data_in : in std_logic_vector(95 downto 0);
+	    a_gate_width : in std_logic_vector(31 downto 0);
+	    operation : in std_logic;
+	    result : out std_logic_vector(95 downto 0)
+     );
+   end component logic_operator;
 	
 	component lbemulator is
   port(
