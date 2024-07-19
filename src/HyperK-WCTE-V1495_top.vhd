@@ -96,7 +96,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   ------- SIGNALS ----------
   --------------------------
   
-  signal REG_R : reg_data(7 downto 0);
+  signal REG_R : reg_data(17 downto 0);
   signal REG_RW : reg_data(83 downto 0);
     
 	-- Data Producer signals
@@ -123,8 +123,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
 begin
 
   -- firmware version
-  REG_R(VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
-  REG_R(VERSION)(7 downto 4)   <= conv_std_logic_vector(0, 4);  -- Demo number
+  REG_R(AR_VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
+  REG_R(AR_VERSION)(7 downto 4)   <= conv_std_logic_vector(0, 4);  -- Demo number
 
   
   -- Register interface
@@ -160,8 +160,12 @@ begin
     proc_data_pipeline : process(otherClk)
     begin
       if rising_edge(otherClk) then
-        delay_regs <= REG_RW(A_RANGE_DELAY_PRE(1) downto A_RANGE_DELAY_PRE(0));
-        gate_regs  <= REG_RW(A_RANGE_GATE_PRE(1) downto A_RANGE_GATE_PRE(0));
+		  for i in ARW_RANGE_DELAY_PRE'range loop		
+          delay_regs(i) <= REG_RW(ARW_RANGE_DELAY_PRE(i));
+		  end loop;
+		  for i in ARW_RANGE_GATE_PRE'range loop		
+			 gate_regs(i)  <= REG_RW(ARW_RANGE_GATE_PRE(i));
+		  end loop;
 	   end if;
     end process proc_data_pipeline;
   
@@ -221,8 +225,8 @@ begin
 	 proc_data_pipeline : process(otherClk)
     begin
       if rising_edge(otherClk) then
-        mask <= REG_RW(D_MASK(i)) & REG_RW(B_MASK(i)) & REG_RW(A_MASK(i));
-		  l_type <= REG_RW(A_TYPE)(i);
+        mask <= REG_RW(ARW_DMASK(i)) & REG_RW(ARW_BMASK(i)) & REG_RW(ARW_AMASK(i));
+		  l_type <= REG_RW(ARW_LOGIC_TYPE)(i);
 	   end if;
 	 end process proc_data_pipeline;
   
@@ -245,7 +249,7 @@ begin
 	   reset => not nLBRES,
 	   count_en => '1',
 	   data_in => result,
-	   count_out => open   
+	   count_out => REG_R(AR_LVL1_COUNTERS(i))  
     );	 
 	 
 	 level1_result(i) <= result;
@@ -272,8 +276,13 @@ begin
 	 signal l_type : std_logic;
     
   begin  
-      
-    l_type <= '0';
+  
+	 proc_data_pipeline : process(otherClk)
+    begin
+      if rising_edge(otherClk) then
+		  l_type <= REG_RW(ARW_LOGIC_TYPE + 10)(i);
+	   end if;
+	 end process proc_data_pipeline;   
   
     inst_logic : entity work.logic_unit
 	 generic map(
@@ -294,7 +303,7 @@ begin
 	   reset => not nLBRES,
 	   count_en => '1',
 	   data_in => result,
-	   count_out => open   
+	   count_out => REG_R(AR_LVL2_COUNTERS(i))  
     );	 
   
   
