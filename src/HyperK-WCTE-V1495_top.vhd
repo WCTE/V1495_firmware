@@ -96,8 +96,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
   ------- SIGNALS ----------
   --------------------------
   
-  signal REG_R : reg_data(17 downto 0);
-  signal REG_RW : reg_data(83 downto 0);
+  signal REG_R : reg_data(numRregs - 1 downto 0);
+  signal REG_RW : reg_data(numRWregs - 1 downto 0);
     
 	-- Data Producer signals
   signal wr_dly_cmd       : std_logic_vector( 1 downto 0) := (others => '0');
@@ -106,16 +106,15 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal input_B_mask			: std_logic_vector(31 downto 0) := (others => 'Z');
   signal ctrlreg     		  : std_logic_vector(31 downto 0) := (others => 'Z');  
   signal D_Expan     			: std_logic_vector(31 downto 0) := (others => 'Z');
+  signal F_Expan     			: std_logic_vector(31 downto 0) := (others => 'Z');
   
   signal counter : unsigned(63 downto 0);
   
-  signal allData : std_logic_vector(95 downto 0);
-  
-  signal hits : std_logic_vector(95 downto 0);
+  signal allData : std_logic_vector(31 downto 0);
   
   signal otherClk : std_logic;
   
-  signal prepared_signals : std_logic_vector(95 downto 0);
+  signal prepared_signals : std_logic_vector(31 downto 0);
   
   signal level1_result : std_logic_vector(9 downto 0);
     
@@ -125,7 +124,7 @@ begin
   -- firmware version
   REG_R(AR_VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= conv_std_logic_vector(0, 4);  -- Demo number
-
+ 
   
   -- Register interface
   inst_regs : entity work.V1495_regs_communication
@@ -153,11 +152,11 @@ begin
   
   -- Pre logic treatment  
   blk_pre_logic : block
-    signal delay_regs : reg_data(23 downto 0);
-    signal gate_regs : reg_data(23 downto 0);
+    signal delay_regs : reg_data(7 downto 0);
+    signal gate_regs : reg_data(7 downto 0);
 	 
-    signal delays : t_slv_v8(96 downto 0);
-    signal gates : t_slv_v8(96 downto 0);
+    signal delays : t_slv_v8(31 downto 0);
+    signal gates : t_slv_v8(31 downto 0);
 	 
   begin
   
@@ -187,7 +186,7 @@ begin
 
   
   
-    gen_level_1 : for i in 23 downto 0 generate 	 
+    gen_level_1 : for i in 7 downto 0 generate 	 
       delays(4*i) <= delay_regs(i)(7 downto 0);
 	   delays(4*i+1) <= delay_regs(i)(15 downto 8);
       delays(4*i+2) <= delay_regs(i)(23 downto 16);
@@ -201,7 +200,7 @@ begin
 
    	
  
-	gen_pre_logic : for i in 95 downto 0 generate
+	gen_pre_logic : for i in 31 downto 0 generate
 	
 	
 	  inst_pre_logic : entity work.pre_logic 
@@ -218,23 +217,28 @@ begin
   
   end block blk_pre_logic;
   
-      
+  --Output prepared signals
+  F_Expan(16) <= A(0);
+  F_Expan(1) <= prepared_signals(0);
   
+  F_Expan(17) <= A(1);
+  F_Expan(12) <= prepared_signals(1);
 
-  
+  F_Expan(28) <= A(2);
+  F_Expan(13) <= prepared_signals(2);
   
   proc_data_pipeline : process(otherClk)
   begin
     if rising_edge(otherClk) then
-	   allData <= D & B & A;
+	   allData <= A;
 	 end if;
   end process proc_data_pipeline;
   
   
   
   -- Level 1 logic
-  gen_logic_level_1 : for i in 9 downto 0 generate
-    signal mask : std_logic_vector(95 downto 0);
+  gen_logic_level_1 : for i in 0 downto 0 generate
+    signal mask : std_logic_vector(31 downto 0);
 	 signal result : std_logic;
     signal l_type : std_logic;
   begin
@@ -242,20 +246,20 @@ begin
 	 proc_data_pipeline : process(otherClk)
     begin
       if rising_edge(otherClk) then
-        mask <= REG_RW(ARW_DMASK(i)) & REG_RW(ARW_BMASK(i)) & REG_RW(ARW_AMASK(i));
+        mask <= REG_RW(ARW_AMASK);
 		  l_type <= REG_RW(ARW_LOGIC_TYPE)(i);
 	   end if;
 	 end process proc_data_pipeline;
   
     inst_logic : entity work.logic_unit
 	 generic map(
-	   bus_width => 96
+	   bus_width => 32
 	 )
     port map(
 	   clk => otherClk,
 	   reset => not nLBRES,
-	   data_in => prepared_signals(95 downto 0),
-	   mask => mask(95 downto 0),
+	   data_in => prepared_signals,
+	   mask => mask,
 	   type_i => l_type,
 	   result => result
     );
@@ -266,7 +270,7 @@ begin
 	   reset => not nLBRES,
 	   count_en => '1',
 	   data_in => result,
-	   count_out => REG_R(AR_LVL1_COUNTERS(i))  --pipeline this
+	   count_out => REG_R(AR_LVL1_COUNTERS)  --pipeline this
     );	 
 	 
 	 level1_result(i) <= result;
@@ -287,47 +291,15 @@ begin
  
   end generate gen_logic_level_1;
   
+  -- output coincidence result
+  F_Expan(0) <= level1_result(0);
+  
+  SELF <= '0';
+  nOEF <= '0';
 
-  gen_logic_level_2 : for i in 3 downto 0 generate
-    signal result : std_logic;
-	 signal l_type : std_logic;
-    
-  begin  
   
-	 proc_data_pipeline : process(otherClk)
-    begin
-      if rising_edge(otherClk) then
-		  l_type <= REG_RW(ARW_LOGIC_TYPE + 10)(i);
-	   end if;
-	 end process proc_data_pipeline;   
-  
-    inst_logic : entity work.logic_unit
-	 generic map(
-	   bus_width => 10
-	 )
-    port map(
-	   clk => otherClk,
-	   reset => not nLBRES,
-	   data_in => level1_result,
-	   mask => (others => '1'),
-	   type_i => l_type,
-	   result => result
-    );
-	 
-	 inst_counter : entity work.counter
-    port map(
-      clk => otherClk,
-	   reset => not nLBRES,
-	   count_en => '1',
-	   data_in => result,
-	   count_out => REG_R(AR_LVL2_COUNTERS(i))  
-    );	 
-  
-  
-  end generate gen_logic_level_2;
-  
-       inst_pll : entity work.ALTERA_CMN_PLL
-       generic map(
+   inst_pll : entity work.ALTERA_CMN_PLL
+     generic map(
      clk0_divide_by      => 8,
      clk0_duty_cycle     => 50,
      clk0_multiply_by    => 25,
@@ -347,6 +319,7 @@ begin
   nOED  <=  '1';    -- Output Enable Port D (only for A395D)
   nOEG  <=  '0';    -- Output Enable Port G
   D     <=  D_Expan	when IDD = "011"  else (others => 'Z');
+  F     <=  F_Expan	when IDF = "011"  else (others => 'Z');
   
   
   nOEDDLY0  <=  '0';  -- Output Enable for PDL0 (active low)
@@ -363,7 +336,7 @@ begin
   
   ctrlreg	  <= X"00000013";--REG_RW(3);
 
-
+ 
 
   
   

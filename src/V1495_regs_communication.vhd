@@ -56,9 +56,7 @@ begin
 		variable rreg, wreg   : std_logic_vector( 31 downto 0);
   begin
     if (nLBRES = '0') then
-      REG_RW(ARW_AMASK(0))     <= X"00000007";    --Default value
-      REG_RW(ARW_BMASK(0))     <= X"00000000";    --Default value
-      REG_RW(ARW_DMASK(0))     <= X"00000000";    --Default value
+      REG_RW(ARW_AMASK)     <= X"00000003";    --Default value
       nREADY      <= '1';
       LADoe       <= '0';
       ADDR        <= (others => '0');

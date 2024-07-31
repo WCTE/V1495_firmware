@@ -20,8 +20,9 @@ def getValue(line):
         newVal = value.replace('(',"").replace(')',"").replace(' ',"").split(',')
         return newVal
     else:
-        return value.strip()
-
+        return [value.strip()]
+       
+            
 def getComment(line):
     if "--" in line:
         return line.split("--",1)[-1].strip()
@@ -39,11 +40,11 @@ with open(filename) as f:
                 elif "AR" in word:
                     R_regnames.append(word)
         elif "constant numRregs" in line:
-            numRregs = getValue(line)
+            numRregs = getValue(line)[0]
         elif "constant numRWregs" in line:
-            numRWregs = getValue(line)            
+            numRWregs = getValue(line)[0]            
         elif "constant R_start_address" in line:
-            R_start_address = getValue(line)
+            R_start_address = getValue(line)[0]
 
 
 start_address = int("0"+R_start_address.replace('"',""),16)
@@ -77,16 +78,12 @@ with open(filename) as f:
                 comment = getComment(line)
                 ADDRS=[]
                 for index in indexes:
-                    ADDRS.append(a_reg_rw[int(index)])                 
+                    ADDRS.append(a_reg_rw[int(index)])
                 RW_dict.update({word: {"addresses": ADDRS, "comment": comment}})  
-
-
 
 
 REGISTERS={'read-only': R_dict,
            'read/write': RW_dict}
-print(REGISTERS['read-only']['AR_VERSION'])
-
 
 for rType in REGISTERS.keys():
     print(rType)
