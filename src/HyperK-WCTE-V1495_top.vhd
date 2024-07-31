@@ -129,6 +129,10 @@ begin
   
   -- Register interface
   inst_regs : entity work.V1495_regs_communication
+      generic map(
+		   N_R_REGS => numRregs,
+		   N_RW_REGS => numRWregs			
+		)
 		port map(
 		  -- Local Bus in/out signals
 		  nLBRES     => nLBRES,
@@ -157,17 +161,30 @@ begin
 	 
   begin
   
+  
+  gen_range : for i in ARW_RANGE_DELAY_PRE'range generate
+    proc_data_pipeline : process(otherClk)
+    begin
+      if rising_edge(otherClk) then	
+          delay_regs(i) <= REG_RW(ARW_RANGE_DELAY_PRE(i));
+	   end if;
+    end process proc_data_pipeline;
+  
+  end generate gen_range;
+  
+  
+  gen_gate : for i in ARW_RANGE_GATE_PRE'range generate
+  
     proc_data_pipeline : process(otherClk)
     begin
       if rising_edge(otherClk) then
-		  for i in ARW_RANGE_DELAY_PRE'range loop		
-          delay_regs(i) <= REG_RW(ARW_RANGE_DELAY_PRE(i));
-		  end loop;
-		  for i in ARW_RANGE_GATE_PRE'range loop		
 			 gate_regs(i)  <= REG_RW(ARW_RANGE_GATE_PRE(i));
-		  end loop;
 	   end if;
     end process proc_data_pipeline;
+	 
+  end generate gen_gate;
+  
+
   
   
     gen_level_1 : for i in 23 downto 0 generate 	 
@@ -249,7 +266,7 @@ begin
 	   reset => not nLBRES,
 	   count_en => '1',
 	   data_in => result,
-	   count_out => REG_R(AR_LVL1_COUNTERS(i))  
+	   count_out => REG_R(AR_LVL1_COUNTERS(i))  --pipeline this
     );	 
 	 
 	 level1_result(i) <= result;
