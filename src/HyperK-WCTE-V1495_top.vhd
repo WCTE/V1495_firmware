@@ -228,7 +228,7 @@ begin
 	  inst_pre_logic : entity work.pre_logic 
        port map(
 	    clk => otherClk,
-	    reset => localReset,
+	    reset => not nLBRES,
 	    data_in => allData(i),
 	    delay => delays(i),
 	    gate  => gates(i),
@@ -261,6 +261,7 @@ begin
     signal mask : std_logic_vector(31 downto 0);
 	 signal result : std_logic;
     signal l_type : std_logic;
+	 signal count : std_logic_vector(31 downto 0);
   begin
     
 	 proc_data_pipeline : process(otherClk)
@@ -290,8 +291,15 @@ begin
 	   reset => localReset,
 	   count_en => '1',
 	   data_in => result,
-	   count_out => REG_R(AR_LVL1_COUNTERS)  --pipeline this
+	   count_out => count
     );	 
+	 
+	 proc_count_pipe : process(LCLK)
+	 begin
+	   if rising_edge(LCLK) then
+		  REG_R(AR_LVL1_COUNTERS) <= count;
+		end if;
+	 end process proc_count_pipe;
 	 
 	 level1_result(i) <= result;
 	 
