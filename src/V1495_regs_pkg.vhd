@@ -50,7 +50,7 @@ package V1495_regs IS
   constant ARW_AMASK : integer := 22; -- Mask on 'A' channels for level 1 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
    
   constant ARW_LOGIC_TYPE : integer := 0; -- Logic type for each logic unit. Bits 0-9 correspond level 1 logic units 0-9. Bits 10-13 correspond to level 2 logic units 0-3. '0' sets logic to 'and', '1' sets to  'or'
-  
+  constant ARW_RESET : integer := 1; -- Reset
 
 end package V1495_regs;
 

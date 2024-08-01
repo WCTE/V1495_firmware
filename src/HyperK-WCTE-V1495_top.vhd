@@ -117,12 +117,32 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal prepared_signals : std_logic_vector(31 downto 0);
   
   signal level1_result : std_logic_vector(9 downto 0);
-    
+  
+  signal localReset : std_logic;
+  
+  signal ADDR_W : std_logic_vector(15 downto 0);
+  
   
 begin
 
+
+
+  proc_reset : process (otherClk)
+  begin
+    if rising_edge(otherClk) then
+	   if ADDR_W = a_reg_rw(ARW_RESET) then
+		  localReset <= '1';
+		else
+		  localReset <= '0';
+		end if;
+    end if;
+  end process;
+
+
+ 
+
   -- firmware version
-  REG_R(AR_VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
+  REG_R(AR_VERSION)(3 downto 0)   <= conv_std_logic_vector(2, 4);  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= conv_std_logic_vector(0, 4);  -- Demo number
  
   
@@ -143,6 +163,8 @@ begin
 		  nINT       => nINT,
 		  LAD        => LAD,
 		  wr_dly_cmd => wr_dly_cmd,
+		  
+		  ADDR_W => ADDR_W,
 		  
 		  REG_R  => REG_R,
 		  REG_RW => REG_RW
@@ -206,7 +228,7 @@ begin
 	  inst_pre_logic : entity work.pre_logic 
        port map(
 	    clk => otherClk,
-	    reset => not nLBRES,
+	    reset => localReset,
 	    data_in => allData(i),
 	    delay => delays(i),
 	    gate  => gates(i),
@@ -217,16 +239,6 @@ begin
   
   end block blk_pre_logic;
   
-  --Output prepared signals
-  F_Expan(16) <= A(0);
-  F_Expan(1) <= prepared_signals(0);
-  
-  F_Expan(17) <= A(1);
-  F_Expan(12) <= prepared_signals(1);
-
-  F_Expan(28) <= A(2);
-  F_Expan(13) <= prepared_signals(2);
-  
   proc_data_pipeline : process(otherClk)
   begin
     if rising_edge(otherClk) then
@@ -234,7 +246,15 @@ begin
 	 end if;
   end process proc_data_pipeline;
   
+  --Output prepared signals
+  F_Expan(16) <= allData(0);
+  F_Expan(1) <= prepared_signals(0);
   
+  F_Expan(17) <= allData(1);
+  F_Expan(12) <= prepared_signals(1);
+
+  F_Expan(28) <= allData(2);
+  F_Expan(13) <= prepared_signals(2);  
   
   -- Level 1 logic
   gen_logic_level_1 : for i in 0 downto 0 generate
@@ -257,7 +277,7 @@ begin
 	 )
     port map(
 	   clk => otherClk,
-	   reset => not nLBRES,
+	   reset => localReset,
 	   data_in => prepared_signals,
 	   mask => mask,
 	   type_i => l_type,
@@ -267,7 +287,7 @@ begin
 	 inst_counter : entity work.counter
     port map(
       clk => otherClk,
-	   reset => not nLBRES,
+	   reset => localReset,
 	   count_en => '1',
 	   data_in => result,
 	   count_out => REG_R(AR_LVL1_COUNTERS)  --pipeline this

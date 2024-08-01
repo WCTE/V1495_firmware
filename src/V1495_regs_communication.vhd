@@ -23,6 +23,8 @@ entity V1495_regs_communication is
     nINT       : out	std_logic;
     LAD        : inout  std_logic_vector(15 DOWNTO 0);
     WR_DLY_CMD : out	std_logic_vector( 1 DOWNTO 0);
+	 
+	 ADDR_W : out std_logic_vector(15 downto 0);
 
     REG_R  : in reg_data(N_R_REGS - 1 downto 0);
     REG_RW : buffer reg_data(N_RW_REGS - 1 downto 0)
@@ -56,6 +58,7 @@ begin
 		variable rreg, wreg   : std_logic_vector( 31 downto 0);
   begin
     if (nLBRES = '0') then
+		ADDR_W <= (others => '0');
       REG_RW(ARW_AMASK)     <= X"00000003";    --Default value
       nREADY      <= '1';
       LADoe       <= '0';
@@ -74,7 +77,8 @@ begin
 			 nREADY  <= '1';
           WR_DLY_CMD  <= (others => '0');
           if (nADS = '0') then        -- Start cycle
-            ADDR <= LAD;              -- Address Sampling
+            ADDR <= LAD;              -- Address Sampling				
+		      ADDR_W <= LAD;
             if (WnR = '1') then       -- Write Access to the registers
               nREADY   <= '0';
               LBSTATE  <= LBWRITEL;     
@@ -85,6 +89,7 @@ begin
           end if;
 
         when LBWRITEL => 
+			 ADDR_W <= (others => '0');
           DTL <= LAD;  -- Save the lower 16 bits of the data
           if (nBLAST = '0') then
             LBSTATE  <= LBIDLE;
@@ -93,7 +98,8 @@ begin
             LBSTATE  <= LBWRITEH;
           end if;
                          
-        when LBWRITEH =>   
+        when LBWRITEH =>
+			 ADDR_W <= (others => '0');   
           wreg  := LAD & DTL;  -- Get the higher 16 bits and create the 32 bit data
 			 
 			 l_reg_write : for k in 0 to N_RW_REGS - 1 loop
@@ -101,10 +107,12 @@ begin
 				  REG_RW(k) <= wreg;
 				end if;
 			 end loop;
+			 --ADDR_W <= ADDR;
 			 		 
 			 LBSTATE  <= LBIDLE;
 
         when LBREADL =>  
+			 ADDR_W <= (others => '0');
           nREADY    <= '0';  -- Assuming that the register is ready for reading
 			 
 			 l_reg_read : for k in 0 to N_R_REGS - 1 loop
@@ -123,6 +131,7 @@ begin
           LADoe  <= '1';  -- Enable the output on the Local Bus
           
         when LBREADH =>  
+			 ADDR_W <= (others => '0');
           LADout  <= rreg(31 downto 16);  -- put the higher 16 bits
           LBSTATE <= LBIDLE;
      
