@@ -96,8 +96,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
   ------- SIGNALS ----------
   --------------------------
   
-  signal REG_R : reg_data(17 downto 0);
-  signal REG_RW : reg_data(83 downto 0);
+  signal REG_R : reg_data(numRregs-1 downto 0);
+  signal REG_RW : reg_data(numRWregs-1 downto 0);
     
 	-- Data Producer signals
   signal wr_dly_cmd       : std_logic_vector( 1 downto 0) := (others => '0');
@@ -118,14 +118,28 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal prepared_signals : std_logic_vector(95 downto 0);
   
   signal level1_result : std_logic_vector(9 downto 0);
-    
+  
+  signal ADDR_W : std_logic_vector(15 downto 0);  
+  signal localReset : std_logic;
   
 begin
+
+  proc_reset : process (otherClk)
+  begin
+    if rising_edge(otherClk) then
+      if ADDR_W = a_reg_rw(ARW_RESET) then
+        localReset <= '1';
+      else
+        localReset <= '0';
+      end if;
+    end if;
+  end process;
 
   -- firmware version
   REG_R(AR_VERSION)(3 downto 0)   <= conv_std_logic_vector(1, 4);  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= conv_std_logic_vector(0, 4);  -- Demo number
 
+  
   
   -- Register interface
   inst_regs : entity work.V1495_regs_communication
@@ -144,6 +158,8 @@ begin
 		  nINT       => nINT,
 		  LAD        => LAD,
 		  wr_dly_cmd => wr_dly_cmd,
+		  
+		  ADDR_W => ADDR_W,		  
 		  
 		  REG_R  => REG_R,
 		  REG_RW => REG_RW
@@ -207,7 +223,7 @@ begin
 	  inst_pre_logic : entity work.pre_logic 
        port map(
 	    clk => otherClk,
-	    reset => not nLBRES,
+	    reset => localReset,
 	    data_in => allData(i),
 	    delay => delays(i),
 	    gate  => gates(i),
@@ -253,7 +269,7 @@ begin
 	 )
     port map(
 	   clk => otherClk,
-	   reset => not nLBRES,
+	   reset => localReset,
 	   data_in => prepared_signals(95 downto 0),
 	   mask => mask(95 downto 0),
 	   type_i => l_type,
@@ -263,7 +279,7 @@ begin
 	 inst_counter : entity work.counter
     port map(
       clk => otherClk,
-	   reset => not nLBRES,
+	   reset => localReset,
 	   count_en => '1',
 	   data_in => result,
 	   count_out => REG_R(AR_LVL1_COUNTERS(i))  --pipeline this
@@ -307,7 +323,7 @@ begin
 	 )
     port map(
 	   clk => otherClk,
-	   reset => not nLBRES,
+	   reset => localReset,
 	   data_in => level1_result,
 	   mask => (others => '1'),
 	   type_i => l_type,
@@ -317,7 +333,7 @@ begin
 	 inst_counter : entity work.counter
     port map(
       clk => otherClk,
-	   reset => not nLBRES,
+	   reset => localReset,
 	   count_en => '1',
 	   data_in => result,
 	   count_out => REG_R(AR_LVL2_COUNTERS(i))  
@@ -326,8 +342,8 @@ begin
   
   end generate gen_logic_level_2;
   
-       inst_pll : entity work.ALTERA_CMN_PLL
-       generic map(
+   inst_pll : entity work.ALTERA_CMN_PLL
+   generic map(
      clk0_divide_by      => 8,
      clk0_duty_cycle     => 50,
      clk0_multiply_by    => 25,

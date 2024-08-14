@@ -34,7 +34,7 @@ package V1495_regs IS
   constant a_reg_r : reg_addresses(0 to numRregs-1) := GenRegAddr(R_start_address, numRregs);
   
   -- Start address of read/write registers 
-  constant RW_start_address : std_logic_vector(15 downto 0) := a_reg_r(numRregs-1);
+  constant RW_start_address : std_logic_vector(15 downto 0) := std_logic_vector(unsigned(a_reg_r(numRregs-1)) + 2);
   --addresses of read/write registers
   constant a_reg_rw : reg_addresses(0 to numRWregs-1) := GenRegAddr(RW_start_address, numRWregs);
        
@@ -53,6 +53,8 @@ package V1495_regs IS
   constant ARW_DMASK : t_int_v(0 to 9) :=(74, 75, 76, 77, 78, 79, 80, 81, 82, 83); -- Mask on 'D' channels for level 1 logic. Each bit of the register corresponds to a channel of the D input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
   
   constant ARW_LOGIC_TYPE : integer := 0; -- Logic type for each logic unit. Bits 0-9 correspond level 1 logic units 0-9. Bits 10-13 correspond to level 2 logic units 0-3. '0' sets logic to 'and', '1' sets to  'or'
+
+  constant ARW_RESET : integer := 1; -- Register controlled reset. A read or write to this register will generate a reset
   
 
 end package V1495_regs;
