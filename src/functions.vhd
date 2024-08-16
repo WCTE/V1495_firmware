@@ -18,6 +18,7 @@ package functions IS
 	
 	function and_reduct(slv : in std_logic_vector) return std_logic;
 	function or_reduct(slv : in std_logic_vector) return std_logic;
+	function div_ceil(a : natural; b : positive) return natural;
   
 
 end package functions;
@@ -94,6 +95,13 @@ begin
   end loop;
   return res_v;
 end function;
+
+	function div_ceil(a : natural; b : positive) return natural is	-- calculates: ceil(a / b)
+	begin
+		return (a + (b - 1)) / b;
+	end function;
+
+
 
   
   

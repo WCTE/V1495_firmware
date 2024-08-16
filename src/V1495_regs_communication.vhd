@@ -59,9 +59,9 @@ begin
   begin
     if (nLBRES = '0') then
 		ADDR_W <= (others => '0');
-      REG_RW(ARW_AMASK(0))     <= X"00000007";    --Default value
-      REG_RW(ARW_BMASK(0))     <= X"00000000";    --Default value
-      REG_RW(ARW_DMASK(0))     <= X"00000000";    --Default value
+      REG_RW(ARW_AMASK_L1(0))     <= X"00000007";    --Default value
+      REG_RW(ARW_BMASK_L1(0))     <= X"00000000";    --Default value
+--      REG_RW(ARW_DMASK(0))     <= X"00000000";    --Default value
       nREADY      <= '1';
       LADoe       <= '0';
       ADDR        <= (others => '0');
