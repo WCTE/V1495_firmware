@@ -95,7 +95,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
   constant N_LEVEL1 : integer := 10;
   constant N_LEVEL2 : integer := 4;
   
-  constant COUNT_WIDTH : integer := 16;
+  constant COUNT_WIDTH_INPUTS : integer := 24;
+  constant COUNT_WIDTH_LOGIC : integer := 16;
 
   --------------------------
   ------- SIGNALS ----------
@@ -127,6 +128,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal level2_input  : std_logic_vector(N_LOGIC_CHANNELS+N_LEVEL1-1 downto 0);
   
   signal level2_result : std_logic_vector(N_LEVEL2-1 downto 0);
+  signal level2_result_edge : std_logic_vector(N_LEVEL2-1 downto 0);
   
   signal ADDR_W : std_logic_vector(15 downto 0);  
   signal localReset : std_logic;
@@ -147,9 +149,12 @@ begin
   end process;
   
   proc_reset_CDC : process(otherClk)
+    variable temp : std_logic;
   begin
     if rising_edge(otherClk) then
-      localReset <= localResetLclk;
+      localReset <= temp;
+		temp := localResetLclk;
+		
    end if;
   end process proc_reset_CDC;
   
@@ -187,56 +192,123 @@ begin
   blk_raw_counters : block
   begin
   
+--    gen_counters : for i in allData'range generate
+--      signal count : std_logic_vector(COUNT_WIDTH_INPUTS-1 downto 0);
+--    begin
+--      inst_counter : entity work.counter
+--      generic map(
+--        count_width => COUNT_WIDTH_INPUTS
+--      )
+--      port map(
+--        clk => otherClk,
+--        reset => localReset,
+--        count_en => '1',
+--        data_in => allData(i),
+--        count_out => count --pipeline this
+--      );     
+--		
+--		gen_a : if i < 32 generate
+--		  proc_count_pipe : process(lclk)
+--		  begin
+--		    if rising_edge(lclk) then
+--            REG_R(AR_ACOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS => '0') & count;
+--          end if;
+--		  end process proc_count_pipe;
+--		  
+--		end generate gen_a;
+--		
+--		gen_b : if i>31 generate
+--		
+--		  proc_count_pipe : process(lclk)
+--		  begin
+--		    if rising_edge(lclk) then
+--		      REG_R(AR_BCOUNTERS(i-32)) <= (31 downto COUNT_WIDTH_INPUTS => '0') & count;
+--          end if;
+--		  end process proc_count_pipe;
+--		  
+--		end generate gen_b;
+--		
+--    end generate gen_counters;
+   
+	
+		
     gen_a_counters : for i in A'range generate
-      signal count : std_logic_vector(COUNT_WIDTH-1 downto 0);
+      signal count : std_logic_vector(COUNT_WIDTH_INPUTS-1 downto 0);
     begin
       inst_counter : entity work.counter
       generic map(
-        count_width => COUNT_WIDTH
+        count_width => COUNT_WIDTH_INPUTS
       )
       port map(
-        clk => lclk,
-        reset => localResetLclk,
+        clk => otherClk,
+        reset => localReset,
         count_en => '1',
         data_in => A(i),
-        count_out => count --pipeline this
-      );     
-      REG_R(AR_ACOUNTERS(i)) <= x"0000" & count;
+        count_out => count  --pipeline this
+      );      
+      REG_R(AR_ACOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS => '0') & count;
     end generate gen_a_counters;
-   
+	
+	
     gen_b_counters : for i in B'range generate
-      signal count : std_logic_vector(COUNT_WIDTH-1 downto 0);
+      signal count : std_logic_vector(COUNT_WIDTH_INPUTS-1 downto 0);
     begin
       inst_counter : entity work.counter
       generic map(
-        count_width => COUNT_WIDTH
+        count_width => COUNT_WIDTH_INPUTS
       )
       port map(
-        clk => lclk,
-        reset => localResetLclk,
+        clk => otherClk,
+        reset => localReset,
         count_en => '1',
         data_in => B(i),
         count_out => count  --pipeline this
       );      
-      REG_R(AR_BCOUNTERS(i)) <= x"0000" & count;
+      REG_R(AR_BCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS => '0') & count;
     end generate gen_b_counters;
-
-    gen_d_counters : for i in D'range generate
-      signal count : std_logic_vector(COUNT_WIDTH-1 downto 0);
+	 
+	 	
+    gen_d_counters : for i in B'range generate
+      signal count : std_logic_vector(COUNT_WIDTH_INPUTS-1 downto 0);
     begin
       inst_counter : entity work.counter
       generic map(
-        count_width => COUNT_WIDTH
+        count_width => COUNT_WIDTH_INPUTS
       )
       port map(
-        clk => lclk,
-        reset => localResetLclk,
+        clk => otherClk,
+        reset => localReset,
         count_en => '1',
         data_in => D(i),
         count_out => count  --pipeline this
       );      
-      REG_R(AR_DCOUNTERS(i)) <= x"0000" & count;
+      REG_R(AR_DCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS => '0') & count;
     end generate gen_d_counters;
+	 
+--
+--    gen_d_counters : for i in D'range generate
+--      signal count : std_logic_vector(COUNT_WIDTH_INPUTS-1 downto 0);
+--    begin
+--      inst_counter : entity work.counter
+--      generic map(
+--        count_width => COUNT_WIDTH_INPUTS
+--      )
+--      port map(
+--        clk => otherClk,
+--        reset => localReset,
+--        count_en => '1',
+--        data_in => D(i),
+--        count_out => count  --pipeline this
+--      );  
+--		
+--		proc_count_pipe : process(lclk)
+--      begin
+--		  if rising_edge(lclk) then		
+--          REG_R(AR_DCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS => '0') & count;
+--        end if;
+--		end process proc_count_pipe;
+--		
+--    end generate gen_d_counters;
   
   
   end block blk_raw_counters;
@@ -297,7 +369,8 @@ begin
     signal mask : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
     signal result : std_logic;
     signal l_type : std_logic;
-    signal count : std_logic_vector(COUNT_WIDTH-1 downto 0);
+    signal count : std_logic_vector(COUNT_WIDTH_LOGIC-1 downto 0);
+	 signal LocalSignals: std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
   begin
     
    proc_data_pipeline : process(otherClk)
@@ -305,6 +378,7 @@ begin
        if rising_edge(otherClk) then
          mask <= REG_RW(ARW_BMASK_L1(i)) & REG_RW(ARW_AMASK_L1(i));
          l_type <= REG_RW(ARW_LOGIC_TYPE)(i);
+			LocalSignals <= prepared_signals;
      end if;
    end process proc_data_pipeline;
   
@@ -315,7 +389,7 @@ begin
    port map(
      clk => otherClk,
      reset => localReset,
-     data_in => prepared_signals(N_LOGIC_CHANNELS-1 downto 0),
+     data_in => LocalSignals(N_LOGIC_CHANNELS-1 downto 0),
      mask => mask(N_LOGIC_CHANNELS-1 downto 0),
      type_i => l_type,
      result => result
@@ -323,7 +397,7 @@ begin
    
    inst_counter : entity work.counter
    generic map(
-     count_width => COUNT_WIDTH
+     count_width => COUNT_WIDTH_LOGIC
    )
    port map(
      clk => otherClk,
@@ -336,7 +410,7 @@ begin
    proc_counter_pipeline : process(lclk)
    begin
      if rising_edge(lclk) then
-       REG_R(AR_LVL1_COUNTERS(i)) <= x"0000"&count;
+       REG_R(AR_LVL1_COUNTERS(i)) <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
      end if;
    end process proc_counter_pipeline;
     
@@ -393,7 +467,8 @@ begin
     signal result : std_logic;
     signal l_type : std_logic;
     signal mask : std_logic_vector(N_LOGIC_CHANNELS+N_LEVEL1-1 downto 0);
-    signal count : std_logic_vector(COUNT_WIDTH-1 downto 0);
+    signal count : std_logic_vector(COUNT_WIDTH_LOGIC-1 downto 0);
+	 signal in_dly : std_logic;
     
   begin  
   
@@ -420,7 +495,7 @@ begin
    
    inst_counter : entity work.counter
    generic map(
-     count_width => COUNT_WIDTH
+     count_width => COUNT_WIDTH_LOGIC
    )
    port map(
      clk => otherClk,
@@ -433,12 +508,25 @@ begin
     proc_counter_pipeline : process(lclk)
     begin
       if rising_edge(lclk) then
-        REG_R(AR_LVL2_COUNTERS(i))   <= x"0000"&count;
+        REG_R(AR_LVL2_COUNTERS(i))   <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
       end if;
     end process proc_counter_pipeline;
   
     level2_result(i) <= result;
-  
+	 
+	 proc_edge_detect : process(otherClk)
+      begin
+        if rising_edge(otherClk) then
+          if localReset = '1' then
+            in_dly <= '0';
+          else
+            in_dly <= result;
+         end if;
+       end if;
+     end process;
+
+   level2_result_edge(i) <= not in_dly and result;
+	   
   end generate gen_logic_level_2;
   
   ------------------------------------------------
@@ -452,7 +540,7 @@ begin
    )
    port map (
      areset     => not nLBRES,
-     clk_in     => lclk,
+     clk_in     => gin(0),
      clk_out_0  => otherClk,
      locked     => open
    );
@@ -468,7 +556,7 @@ begin
       clk => otherClk,
       reset => localReset,
       raw_in =>  level2_result &       level1_result &           D & allData,
-      prep_in => level2_result & prepared_signals_l1 & x"00000000" & prepared_signals,
+      prep_in => level2_result_edge & prepared_signals_l1 & x"00000000" & prepared_signals,
       regs_in(0) => REG_RW(ARW_F(0)),
       regs_in(1) => REG_RW(ARW_F(1)),
       regs_in(2) => REG_RW(ARW_F(2)),
@@ -491,7 +579,7 @@ begin
   
    -- Port Output Enable (0=Output, 1=Input)
   nOED  <=  '1';    -- Output Enable Port D (only for A395D)
-  nOEG  <=  '0';    -- Output Enable Port G
+  nOEG  <=  '1';    -- Output Enable Port G
   D     <=  D_Expan  when IDD = "011"  else (others => 'Z');
   F     <=  F_Expan    when IDF = "011"  else (others => 'Z');
 
@@ -501,7 +589,7 @@ begin
   
   -- Port Level Select (0=NIM, 1=TTL)
   SELD      <=  ctrlreg(0);    -- Output Level Select Port D (only for A395D)
-  SELG      <=  ctrlreg(1);    -- Output Level Select Port G
+  --SELG      <=  ctrlreg(1);    -- Output Level Select Port G
 
   DIRDDLY   <=  ctrlreg(4);  -- Direction of PDL data (0 => Read Dip Switches)
                               --                       (1 => Write from FPGA)                           

@@ -1,7 +1,5 @@
 -- register package
 
-
-
 library IEEE;
 use IEEE.std_Logic_1164.all;
 --use IEEE.std_Logic_arith.all;
@@ -19,7 +17,7 @@ package V1495_regs IS
   -- Function to generate register address from a starting value
   function GenRegAddr(startReg : std_logic_vector(15 downto 0); numReg : integer) return reg_addresses;
   function GenIntegerList(start : integer; num : integer) return t_int_v;
-							 
+           
   type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
   
   type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
@@ -28,7 +26,7 @@ package V1495_regs IS
   -- The number of read only registers
   constant numRregs :  integer := 114;
   -- The number or read/write registers
-  constant numRWregs : integer := 100;
+  constant numRWregs : integer := 110;
   
   -- Start address of read-only registers
   constant R_start_address : std_logic_vector(15 downto 0) := x"1000";
@@ -72,6 +70,7 @@ package V1495_regs IS
   
   constant ARW_F : t_int_v(0 to 7) := GenIntegerList(92, 8); -- Signals routed to the F NIM outputs
   
+  constant ARW_POST_L1_PRESCALE : GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
 
 end package V1495_regs;
 
@@ -87,18 +86,18 @@ package body V1495_regs is
       regList(i) := std_logic_vector(curAddress);
       curAddress := curAddress + 2;
     end loop;
-      return regList;
+    return regList;
   end function;
   
   function GenIntegerList(start : integer; num : integer) return t_int_v is
     variable numList : t_int_v(0 to num-1);
-	 variable curVal : integer := start;
+    variable curVal : integer := start;
   begin
     for i in 0 to num - 1 loop
       numList(i) := curVal;
       curVal := curVal + 1;
     end loop;
-      return numList;  
+    return numList;  
   end function;
 
 end package body V1495_regs;

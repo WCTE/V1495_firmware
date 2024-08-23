@@ -29,6 +29,9 @@ begin
   
   
     gen_level_1 : for i in div_ceil(n_channels,4)-1 downto 0 generate 	 
+	   proc_pipe : process(clk)
+		begin
+		  if rising_edge(clk) then
       delays(4*i) <= delay_regs(i)(7 downto 0);
 	   delays(4*i+1) <= delay_regs(i)(15 downto 8);
       delays(4*i+2) <= delay_regs(i)(23 downto 16);
@@ -38,6 +41,8 @@ begin
 	   gates(4*i+1) <= gate_regs(i)(15 downto 8);
       gates(4*i+2) <= gate_regs(i)(23 downto 16);
       gates(4*i+3) <= gate_regs(i)(31 downto 24);
+		  end if;
+		end process proc_pipe;
     end generate; 
 
  
