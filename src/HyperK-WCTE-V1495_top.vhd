@@ -407,6 +407,12 @@ begin
      count_out => count  --pipeline this
    );   
    
+	-- compare value of count with REG_RW(ARW_POST_L1_PRESCALE(i) to apply prescale
+	-- if the registers is '0', then result 
+	
+	
+	
+	
    proc_counter_pipeline : process(lclk)
    begin
      if rising_edge(lclk) then
@@ -443,6 +449,8 @@ begin
        end if;
       end process proc_data_pipeline;
     end generate gen_gate;  
+	 
+	 
   
     inst_pre_logic: work. pre_logic_treatment
     generic map(

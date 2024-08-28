@@ -70,7 +70,7 @@ package V1495_regs IS
   
   constant ARW_F : t_int_v(0 to 7) := GenIntegerList(92, 8); -- Signals routed to the F NIM outputs
   
-  constant ARW_POST_L1_PRESCALE : GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
+  constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
 
 end package V1495_regs;
 
