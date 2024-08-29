@@ -36,6 +36,7 @@ architecture behavioral of pre_logic is
   signal in_dly : std_logic;
   signal edge : std_logic;
   
+  
 
 
 begin
@@ -156,9 +157,7 @@ begin
   data_out <= '0'            when gate_integer = 0 else
               delayed_signal when gate_integer = 1 else  
 	           gate_signal or delayed_signal;
-  
 
---data_out <= delayed_signal
 
 
 

@@ -26,7 +26,7 @@ package V1495_regs IS
   -- The number of read only registers
   constant numRregs :  integer := 114;
   -- The number or read/write registers
-  constant numRWregs : integer := 110;
+  constant numRWregs : integer := 113;
   
   -- Start address of read-only registers
   constant R_start_address : std_logic_vector(15 downto 0) := x"1000";
@@ -52,13 +52,14 @@ package V1495_regs IS
   -- Address index of read/write registers
   constant ARW_DELAY_PRE : t_int_v(0 to 15) := GenIntegerList(6, 16);  -- Delay registers for pre-logic treatment of input data. Each register covers four channels.
   constant ARW_GATE_PRE  : t_int_v(0 to 15) := GenIntegerList(22, 16); -- Gate width registers for pre-logic treatment of input data. Each register covers four channels.
-  
+    
   constant ARW_DELAY_LEVEL1 : t_int_v(0 to 2) := GenIntegerList(74, 3);-- Delay registers for pre-logic treatment of level 1 trigger. Each register covers four logic units.
   constant ARW_GATE_LEVEL1  : t_int_v(0 to 2) := GenIntegerList(77, 3); -- Gate width registers for pre-logic treatment of level 1 trigger. Each register covers four logic units.
+  constant ARW_INVERT_LEVEL1 : integer := 110; -- Switch to invert level 1 logic outputs;
  
   constant ARW_AMASK_L1 : t_int_v(0 to 9) := GenIntegerList(54, 10); -- Mask on 'A' channels for level 1 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
   constant ARW_BMASK_L1 : t_int_v(0 to 9) := GenIntegerList(64, 10); -- Mask on 'B' channels for level 1 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
- 
+  
   constant ARW_AMASK_L2 : t_int_v(0 to 3)  := GenIntegerList(80, 4); -- Mask on 'A' channels for level 2 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate level 2 logic unit.
   constant ARW_BMASK_L2 : t_int_v(0 to 3)  := GenIntegerList(84, 4); -- Mask on 'B' channels for level 2 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate level 2 logic unit.
   constant ARW_L1MASK_L2 : t_int_v(0 to 3) := GenIntegerList(88, 4); -- Mask on level 1 results for level 2 logic. Each bit of the register corresponds to a level 1 logic unit. '0' is disabled, '1' is enabled. Each register corresponds to a separate level 2 logic unit.
@@ -71,6 +72,9 @@ package V1495_regs IS
   constant ARW_F : t_int_v(0 to 7) := GenIntegerList(92, 8); -- Signals routed to the F NIM outputs
   
   constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
+  
+  constant ARW_PRESPILL : integer := 111; -- Set to channel used for pre-spill signal
+  constant ARW_ENDPSILL : integer := 112; -- Set to channel used for end of spill signal
 
 end package V1495_regs;
 

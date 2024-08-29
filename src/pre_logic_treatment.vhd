@@ -15,7 +15,7 @@ entity pre_logic_treatment is
 	reset : in std_logic;
 	delay_regs : in reg_data(div_ceil(n_channels,4)-1 downto 0);
 	gate_regs : in reg_data(div_ceil(n_channels,4)-1 downto 0);
-	data_in : in std_logic_vector(n_channels - 1 downto 0);
+	data_in : in std_logic_vector(n_channels - 1 downto 0);	
 	prepared_signals : out std_logic_vector(n_channels - 1 downto 0)
  );
 end entity pre_logic_treatment;
@@ -24,6 +24,7 @@ end entity pre_logic_treatment;
  architecture behavioral of pre_logic_treatment is
   signal delays : t_slv_v8(delay_regs'length*4 -1 downto 0);
   signal gates : t_slv_v8(gate_regs'length*4 -1 downto 0);
+  
  
 begin
   
