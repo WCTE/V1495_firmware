@@ -47,6 +47,7 @@ begin
   end process proc_count;
 
   count_out <= std_logic_vector(counter_unsigned);
+  
 
 
 end architecture behavioral;

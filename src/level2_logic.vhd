@@ -34,13 +34,13 @@ architecture behavioral of level2_logic is
 	 
   begin  
   
-   proc_data_pipeline : process(clk)
-    begin
-      if rising_edge(clk) then
+   --proc_data_pipeline : process(clk)
+   -- begin
+   --   if rising_edge(clk) then
         mask_s <= mask;
-        l_type_s <= logic_type;
-      end if;
-    end process proc_data_pipeline;   
+   --     l_type_s <= logic_type;
+   --   end if;
+   -- end process proc_data_pipeline;   
   
     inst_logic : entity work.logic_unit
     generic map(

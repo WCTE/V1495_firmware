@@ -16,6 +16,7 @@ entity level1_logic is
 	 mask : in std_logic_vector(N_CHANNELS-1 downto 0);
 	 data_in : in std_logic_vector(N_CHANNELS-1 downto 0);
 	 logic_type : in std_logic;
+	 invert : in std_logic_vector(N_CHANNELS-1 downto 0);
 	 prescale : in std_logic_vector(7 downto 0);
   
     result : out std_logic;
@@ -38,15 +39,32 @@ architecture behavioral of level1_logic is
 	 	 
 begin
     
-   proc_data_pipeline : process(clk)
-     begin
-       if rising_edge(clk) then
-         mask_s <= mask;
-         l_type_s <= logic_type;
-			data_s <= data_in;
-			prescale_s <= prescale;
-     end if;
-   end process proc_data_pipeline;
+--   proc_data_pipeline : process(clk)
+--     begin
+--       if rising_edge(clk) then
+--         mask_s <= mask;
+--         l_type_s <= logic_type;
+--			for i in N_CHANNELS - 1 downto 0 loop
+--			  if invert(i) = '1' then
+--			    data_s(i) <= not data_in(i);
+--			  else
+--			    data_s(i) <= data_in(i);
+--			  end if;			
+--			end loop;
+--			prescale_s <= prescale;
+--     end if;
+--   end process proc_data_pipeline;
+	
+	
+	  mask_s <= mask;
+     l_type_s <= logic_type;
+		
+	  gen_inv: for i in N_CHANNELS - 1 downto 0 generate
+	    data_s(i) <= not data_in(i) when invert(i) = '1' else
+		              data_in(i);
+	  end generate gen_inv;
+	  prescale_s <= prescale;
+	
 
   
    inst_logic : entity work.logic_unit

@@ -62,13 +62,15 @@ def getRegisterList(filename):
             elif "constant numRWregs" in line:
                 numRWregs = getValue(line)[0]            
             elif "constant R_start_address" in line:
-                R_start_address = getValue(line)[0]
+                R_start_address = getValue(line)[0]  
+            elif "constant RW_start_address" in line:
+                RW_start_address = getValue(line)[0]
 
 
     start_address = int("0"+R_start_address.replace('"',""),16)
     a_reg_r = genRegAddr(start_address, numRregs)
 
-    start_address = a_reg_r[-1]+2   
+    start_address = int("0"+RW_start_address.replace('"',""),16)
     a_reg_rw = genRegAddr(start_address, numRWregs)
 
     with open(filename) as f:

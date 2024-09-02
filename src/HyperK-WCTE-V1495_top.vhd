@@ -21,6 +21,7 @@ use IEEE.std_Logic_1164.all;
 use IEEE.NUMERIC_STD.ALL; 
 use IEEE.std_Logic_unsigned.all;
 use work.V1495_regs.all;
+use work.functions.all;
 
 
 entity HyperK_WCTE_V1495_top is
@@ -92,12 +93,12 @@ END HyperK_WCTE_V1495_top ;
 architecture rtl of HyperK_WCTE_V1495_top is
 
   constant N_LOGIC_CHANNELS : integer := A'length + B'length;
-  constant N_LEVEL1 : integer := 10;
-  constant N_LEVEL2 : integer := 4;
+  constant N_LEVEL1 : integer := 1;--8;
+  constant N_LEVEL2 : integer := 1;--4;
   
-  constant COUNT_WIDTH_INPUTS_AB : integer := 20;
-  constant COUNT_WIDTH_INPUTS_D : integer := 24;
-  constant COUNT_WIDTH_LOGIC : integer := 16;
+  constant COUNT_WIDTH_INPUTS_AB : integer := 8;--20;
+  constant COUNT_WIDTH_INPUTS_D : integer := 8;--24;
+  constant COUNT_WIDTH_LOGIC : integer := 8;--16;
 
   --------------------------
   ------- SIGNALS ----------
@@ -120,7 +121,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   
   signal hits : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
   
-  signal otherClk : std_logic;
+  signal clk_125 : std_logic;
   
   signal prepared_signals : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
   signal prepared_signals_l1 : std_logic_vector(N_LEVEL1-1 downto 0);
@@ -132,36 +133,36 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal level2_result_edge : std_logic_vector(N_LEVEL2-1 downto 0);
   
   signal ADDR_W : std_logic_vector(15 downto 0);  
-  signal localReset : std_logic;
-  signal localResetLclk : std_logic;
+  signal reset_125 : std_logic;
+  signal reset_lclk : std_logic;
   
   signal spill_veto : std_logic;  
   
   
 begin
 
-  proc_reset : process (lclk)
+  proc_reset : process (clk_125)
   begin
-    if rising_edge(lclk) then
+    if rising_edge(clk_125) then
       if ADDR_W = a_reg_rw(ARW_RESET) then
-        localResetLclk <= '1';
+        reset_125 <= '1';
       else
-        localResetLclk <= '0';
+        reset_125 <= '0';
       end if;
     end if;
   end process;
   
-  proc_reset_CDC : process(otherClk)
-    variable temp : std_logic;
-  begin
-    if rising_edge(otherClk) then
-      localReset <= temp;
-		temp := localResetLclk;
-		
-   end if;
-  end process proc_reset_CDC;
-  
-
+--  inst_rst_sync : work.areset_sync
+--    generic map(
+--	   STAGES => 2
+--	 )
+--    port map ( 
+--      clk => clk_125,
+--      async_rst_i => reset_lclk,
+--      sync_rst_o => reset_125
+--    );
+--  
+    
   -- firmware version
   REG_R(AR_VERSION)(3 downto 0)   <= x"1";  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= x"0";  -- Demo number
@@ -173,6 +174,7 @@ begin
     N_RW_REGS => numRWregs      
   )
   port map(
+    clk_data => clk_125,
     -- Local Bus in/out signals
     nLBRES     => nLBRES,
     nBLAST     => nBLAST,
@@ -203,8 +205,8 @@ begin
         count_width => COUNT_WIDTH_INPUTS_AB
       )
       port map(
-        clk => otherClk,
-        reset => localReset,
+        clk => clk_125,
+        reset => reset_125,
         count_en => '1',
         data_in => A(i),
         count_out => count  --pipeline this
@@ -221,8 +223,8 @@ begin
         count_width => COUNT_WIDTH_INPUTS_AB
       )
       port map(
-        clk => otherClk,
-        reset => localReset,
+        clk => clk_125,
+        reset => reset_125,
         count_en => '1',
         data_in => B(i),
         count_out => count  --pipeline this
@@ -231,23 +233,23 @@ begin
     end generate gen_b_counters;
 	 
 	 	
-    gen_d_counters : for i in B'range generate
-      signal count : std_logic_vector(COUNT_WIDTH_INPUTS_D-1 downto 0);
-    begin
-      inst_counter : entity work.counter
-      generic map(
-        count_width => COUNT_WIDTH_INPUTS_D
-      )
-      port map(
-        clk => otherClk,
-        reset => localReset,
-        count_en => '1',
-        data_in => D(i),
-        count_out => count  --pipeline this
-      );      
-      REG_R(AR_DCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_D => '0') & count;
-    end generate gen_d_counters;
-	   
+--    gen_d_counters : for i in B'range generate
+--      signal count : std_logic_vector(COUNT_WIDTH_INPUTS_D-1 downto 0);
+--    begin
+--      inst_counter : entity work.counter
+--      generic map(
+--        count_width => COUNT_WIDTH_INPUTS_D
+--      )
+--      port map(
+--        clk => clk_125,
+--        reset => reset_125,
+--        count_en => '1',
+--        data_in => D(i),
+--        count_out => count  --pipeline this
+--      );      
+--      REG_R(AR_DCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_D => '0') & count;
+--    end generate gen_d_counters;
+--	   
   end block blk_raw_counters;
    
   
@@ -259,21 +261,21 @@ begin
   begin
     
     gen_range : for i in ARW_DELAY_PRE'range generate
-      proc_data_pipeline : process(otherClk)
-      begin
-        if rising_edge(otherClk) then  
+    --  proc_data_pipeline : process(clk_125)
+      --begin
+        --if rising_edge(clk_125) then  
           delay_regs(i) <= REG_RW(ARW_DELAY_PRE(i));
-        end if;
-      end process proc_data_pipeline;
+        --end if;
+      --end process proc_data_pipeline;
     end generate gen_range;
   
     gen_gate : for i in ARW_GATE_PRE'range generate
-      proc_data_pipeline : process(otherClk)
-      begin
-        if rising_edge(otherClk) then
+      --proc_data_pipeline : process(clk_125)
+      --begin
+        --if rising_edge(clk_125) then
         gate_regs(i)  <= REG_RW(ARW_GATE_PRE(i));
-        end if;
-      end process proc_data_pipeline;
+        --end if;
+      --end process proc_data_pipeline;
     end generate gen_gate;  
   
     inst_pre_logic: work.pre_logic_treatment
@@ -281,8 +283,8 @@ begin
       n_channels => N_LOGIC_CHANNELS
     )
     port map (
-      clk => otherClk,
-      reset => localReset,
+      clk => clk_125,
+      reset => reset_125,
       delay_regs => delay_regs,
       gate_regs => gate_regs,
       data_in => allData,
@@ -292,12 +294,12 @@ begin
   end block blk_pre_logic;
   
         
-  proc_data_pipeline : process(otherClk)
-  begin
-    if rising_edge(otherClk) then
+  --proc_data_pipeline : process(clk_125)
+  --begin
+    --if rising_edge(clk_125) then
       allData <= B & A;
-    end if;
-  end process proc_data_pipeline;
+    --end if;
+  --end process proc_data_pipeline;
   
   --LEVEL-1-LOGIC---------------------------------------------------
   
@@ -312,24 +314,25 @@ begin
 	   COUNTER_WIDTH => COUNT_WIDTH_LOGIC
     )
     port map(
-      clk => otherClk,
-	   reset =>localReset,
+      clk => clk_125,
+	   reset =>reset_125,
 	   mask => REG_RW(ARW_BMASK_L1(i)) & REG_RW(ARW_AMASK_L1(i)),
 	   data_in => prepared_signals,
 	   logic_type => REG_RW(ARW_LOGIC_TYPE)(i),
 	   prescale => REG_RW(ARW_POST_L1_PRESCALE(i))(7 downto 0),
+		invert => REG_RW(ARW_BINV_L1(i)) & REG_RW(ARW_AINV_L1(i)),
   
       result => level1_result(i),
 	   count =>count     
     );
   
   
-    proc_counter_pipeline : process(lclk)
-    begin
-      if rising_edge(lclk) then
+    --proc_counter_pipeline : process(lclk)
+    --begin
+      --if rising_edge(lclk) then
         REG_R(AR_LVL1_COUNTERS(i)) <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
-      end if;
-    end process proc_counter_pipeline;
+      --end if;
+    --end process proc_counter_pipeline;
   
   end generate gen_logic_level_1;
     
@@ -342,21 +345,21 @@ begin
   begin
     
     gen_range : for i in ARW_DELAY_LEVEL1'range generate
-      proc_data_pipeline : process(otherClk)
-      begin
-        if rising_edge(otherClk) then  
+      --proc_data_pipeline : process(clk_125)
+      --begin
+        --if rising_edge(clk_125) then  
           delay_regs(i) <= REG_RW(ARW_DELAY_LEVEL1(i));
-        end if;
-      end process proc_data_pipeline;
+        --end if;
+      --end process proc_data_pipeline;
     end generate gen_range;
   
     gen_gate : for i in ARW_GATE_LEVEL1'range generate
-      proc_data_pipeline : process(otherClk)
-      begin
-        if rising_edge(otherClk) then
+      --proc_data_pipeline : process(clk_125)
+      --begin
+        --if rising_edge(clk_125) then
        gate_regs(i)  <= REG_RW(ARW_GATE_LEVEL1(i));
-       end if;
-      end process proc_data_pipeline;
+       --end if;
+      --end process proc_data_pipeline;
     end generate gen_gate;  
 	 
 	  
@@ -365,10 +368,10 @@ begin
       n_channels => N_LEVEL1
     )
     port map (
-      clk => otherClk,
-      reset => localReset,
-      delay_regs => delay_regs,
-      gate_regs => gate_regs,
+      clk => clk_125,
+      reset => reset_125,
+      delay_regs => delay_regs(div_ceil(N_LEVEL1,4)-1 downto 0),
+      gate_regs => gate_regs(div_ceil(N_LEVEL1,4)-1 downto 0),
       data_in => level1_result,
       prepared_signals => prepared_signals_l1
     );
@@ -396,8 +399,8 @@ begin
 	   COUNTER_WIDTH => COUNT_WIDTH_LOGIC
     )
     port map(
-      clk => otherClk,
-      reset => localReset,
+      clk => clk_125,
+      reset => reset_125,
 	   mask => REG_RW(ARW_L1MASK_L2(i))(N_LEVEL1-1 downto 0) & REG_RW(ARW_BMASK_L2(i)) & REG_RW(ARW_AMASK_L2(i)),
 	   data_in => level2_input,
 	   logic_type => REG_RW(ARW_LOGIC_TYPE + N_LEVEL1)(i),
@@ -406,19 +409,19 @@ begin
 	   count => count
     ); 
  	 
-    proc_counter_pipeline : process(lclk)
-    begin
-      if rising_edge(lclk) then
+    --proc_counter_pipeline : process(lclk)
+    --begin
+      --if rising_edge(lclk) then
         REG_R(AR_LVL2_COUNTERS(i))   <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
-      end if;
-    end process proc_counter_pipeline;
+      --end if;
+    --end process proc_counter_pipeline;
   
     level2_result(i) <= result;
 	 
-	 proc_edge_detect : process(otherClk)
+	 proc_edge_detect : process(clk_125)
       begin
-        if rising_edge(otherClk) then
-          if localReset = '1' then
+        if rising_edge(clk_125) then
+          if reset_125 = '1' then
             in_dly <= '0';
           else
             in_dly <= result;
@@ -434,15 +437,15 @@ begin
   
    inst_pll : entity work.ALTERA_CMN_PLL
    generic map(
-     clk0_divide_by      => 8,
+     clk0_divide_by      => 8, --1,
      clk0_duty_cycle     => 50,
-     clk0_multiply_by    => 25,
-     inclk0_input_frequency  => 25000  --actually period in us.
+     clk0_multiply_by    => 25,--2,
+     inclk0_input_frequency  => 25000 --16000  --actually period in us.
    )
    port map (
      areset     => not nLBRES,
-     clk_in     => gin(0),
-     clk_out_0  => otherClk,
+     clk_in     => lclk,--gin(0),
+     clk_out_0  => clk_125,
      locked     => open
    );
 
@@ -453,9 +456,12 @@ begin
   begin
    
     inst_lemo : work.lemo_output
+	 generic map(
+	   n_channels =>  N_LEVEL2+N_LEVEL1+32+N_LOGIC_CHANNELS
+	 )
     port map (
-      clk => otherClk,
-      reset => localReset,
+      clk => clk_125,
+      reset => reset_125,
       raw_in =>  level2_result &            level1_result &           D & allData,
       prep_in => level2_result_edge & prepared_signals_l1 & x"00000000" & prepared_signals,
       regs_in(0) => REG_RW(ARW_F(0)),
@@ -468,7 +474,12 @@ begin
       regs_in(7) => REG_RW(ARW_F(7)),
       data_out => lemo_out
     );
-  
+--  
+--	 lemo_out(0) <= gin(0);
+--	 lemo_out(1) <= clk_125;
+--	 lemo_out(7 downto 2) <= (others => '0');
+
+
     gen_lemo_out : for i in 7 downto 0 generate
       F_Expan(A395D_Mapping(i)) <= lemo_out(i);  
     end generate;
@@ -505,7 +516,8 @@ begin
   
   -- Port Level Select (0=NIM, 1=TTL)
   SELD      <=  ctrlreg(0);    -- Output Level Select Port D (only for A395D)
-  --SELG      <=  ctrlreg(1);    -- Output Level Select Port G
+  SELG      <=  '1';
+  
 
   DIRDDLY   <=  ctrlreg(4);  -- Direction of PDL data (0 => Read Dip Switches)
                               --                       (1 => Write from FPGA)                           
