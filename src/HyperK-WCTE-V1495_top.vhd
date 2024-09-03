@@ -93,12 +93,12 @@ END HyperK_WCTE_V1495_top ;
 architecture rtl of HyperK_WCTE_V1495_top is
 
   constant N_LOGIC_CHANNELS : integer := A'length + B'length;
-  constant N_LEVEL1 : integer := 1;--8;
-  constant N_LEVEL2 : integer := 1;--4;
+  constant N_LEVEL1 : integer := 8;
+  constant N_LEVEL2 : integer := 4;
   
-  constant COUNT_WIDTH_INPUTS_AB : integer := 8;--20;
-  constant COUNT_WIDTH_INPUTS_D : integer := 8;--24;
-  constant COUNT_WIDTH_LOGIC : integer := 8;--16;
+  constant COUNT_WIDTH_INPUTS_AB : integer := 20;
+  constant COUNT_WIDTH_INPUTS_D : integer := 24;
+  constant COUNT_WIDTH_LOGIC : integer := 16;
 
   --------------------------
   ------- SIGNALS ----------
@@ -151,18 +151,7 @@ begin
       end if;
     end if;
   end process;
-  
---  inst_rst_sync : work.areset_sync
---    generic map(
---	   STAGES => 2
---	 )
---    port map ( 
---      clk => clk_125,
---      async_rst_i => reset_lclk,
---      sync_rst_o => reset_125
---    );
---  
-    
+      
   -- firmware version
   REG_R(AR_VERSION)(3 downto 0)   <= x"1";  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= x"0";  -- Demo number
@@ -209,7 +198,7 @@ begin
         reset => reset_125,
         count_en => '1',
         data_in => A(i),
-        count_out => count  --pipeline this
+        count_out => count  
       );      
       REG_R(AR_ACOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_AB => '0') & count;
     end generate gen_a_counters;
@@ -227,29 +216,29 @@ begin
         reset => reset_125,
         count_en => '1',
         data_in => B(i),
-        count_out => count  --pipeline this
+        count_out => count  
       );      
       REG_R(AR_BCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_AB => '0') & count;
     end generate gen_b_counters;
 	 
 	 	
---    gen_d_counters : for i in B'range generate
---      signal count : std_logic_vector(COUNT_WIDTH_INPUTS_D-1 downto 0);
---    begin
---      inst_counter : entity work.counter
---      generic map(
---        count_width => COUNT_WIDTH_INPUTS_D
---      )
---      port map(
---        clk => clk_125,
---        reset => reset_125,
---        count_en => '1',
---        data_in => D(i),
---        count_out => count  --pipeline this
---      );      
---      REG_R(AR_DCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_D => '0') & count;
---    end generate gen_d_counters;
---	   
+    gen_d_counters : for i in B'range generate
+      signal count : std_logic_vector(COUNT_WIDTH_INPUTS_D-1 downto 0);
+    begin
+      inst_counter : entity work.counter
+      generic map(
+        count_width => COUNT_WIDTH_INPUTS_D
+      )
+      port map(
+        clk => clk_125,
+        reset => reset_125,
+        count_en => '1',
+        data_in => D(i),
+        count_out => count  --pipeline this
+      );      
+      REG_R(AR_DCOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_D => '0') & count;
+    end generate gen_d_counters;
+	   
   end block blk_raw_counters;
    
   
@@ -261,21 +250,11 @@ begin
   begin
     
     gen_range : for i in ARW_DELAY_PRE'range generate
-    --  proc_data_pipeline : process(clk_125)
-      --begin
-        --if rising_edge(clk_125) then  
-          delay_regs(i) <= REG_RW(ARW_DELAY_PRE(i));
-        --end if;
-      --end process proc_data_pipeline;
+      delay_regs(i) <= REG_RW(ARW_DELAY_PRE(i));
     end generate gen_range;
   
     gen_gate : for i in ARW_GATE_PRE'range generate
-      --proc_data_pipeline : process(clk_125)
-      --begin
-        --if rising_edge(clk_125) then
-        gate_regs(i)  <= REG_RW(ARW_GATE_PRE(i));
-        --end if;
-      --end process proc_data_pipeline;
+      gate_regs(i)  <= REG_RW(ARW_GATE_PRE(i));
     end generate gen_gate;  
   
     inst_pre_logic: work.pre_logic_treatment
@@ -294,12 +273,12 @@ begin
   end block blk_pre_logic;
   
         
-  --proc_data_pipeline : process(clk_125)
-  --begin
-    --if rising_edge(clk_125) then
+  proc_data_pipeline : process(clk_125)
+  begin
+    if rising_edge(clk_125) then
       allData <= B & A;
-    --end if;
-  --end process proc_data_pipeline;
+    end if;
+  end process proc_data_pipeline;
   
   --LEVEL-1-LOGIC---------------------------------------------------
   
@@ -327,13 +306,8 @@ begin
     );
   
   
-    --proc_counter_pipeline : process(lclk)
-    --begin
-      --if rising_edge(lclk) then
-        REG_R(AR_LVL1_COUNTERS(i)) <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
-      --end if;
-    --end process proc_counter_pipeline;
-  
+    REG_R(AR_LVL1_COUNTERS(i)) <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
+ 
   end generate gen_logic_level_1;
     
   
@@ -345,21 +319,11 @@ begin
   begin
     
     gen_range : for i in ARW_DELAY_LEVEL1'range generate
-      --proc_data_pipeline : process(clk_125)
-      --begin
-        --if rising_edge(clk_125) then  
-          delay_regs(i) <= REG_RW(ARW_DELAY_LEVEL1(i));
-        --end if;
-      --end process proc_data_pipeline;
+      delay_regs(i) <= REG_RW(ARW_DELAY_LEVEL1(i));
     end generate gen_range;
   
     gen_gate : for i in ARW_GATE_LEVEL1'range generate
-      --proc_data_pipeline : process(clk_125)
-      --begin
-        --if rising_edge(clk_125) then
-       gate_regs(i)  <= REG_RW(ARW_GATE_LEVEL1(i));
-       --end if;
-      --end process proc_data_pipeline;
+      gate_regs(i)  <= REG_RW(ARW_GATE_LEVEL1(i));
     end generate gen_gate;  
 	 
 	  
@@ -409,12 +373,8 @@ begin
 	   count => count
     ); 
  	 
-    --proc_counter_pipeline : process(lclk)
-    --begin
-      --if rising_edge(lclk) then
-        REG_R(AR_LVL2_COUNTERS(i))   <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
-      --end if;
-    --end process proc_counter_pipeline;
+    REG_R(AR_LVL2_COUNTERS(i))   <= (31 downto COUNT_WIDTH_LOGIC => '0')&count;
+
   
     level2_result(i) <= result;
 	 
