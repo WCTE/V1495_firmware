@@ -287,7 +287,7 @@ begin
   
    dcfifo_component : dcfifo
    GENERIC MAP (
-                add_ram_output_register => "OFF",
+                add_ram_output_register => "ON",
                 clocks_are_synchronized => "FALSE",
                 intended_device_family => "Cyclone",
                 lpm_numwords => 4,
@@ -416,7 +416,7 @@ begin
 	 	   
       dcfifo_component : dcfifo
         GENERIC MAP (
-                add_ram_output_register => "OFF",
+                add_ram_output_register => "ON",
                 clocks_are_synchronized => "FALSE",
                 intended_device_family => "Cyclone",
                 lpm_numwords => 4,
