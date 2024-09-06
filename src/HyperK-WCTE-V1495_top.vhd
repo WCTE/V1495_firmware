@@ -96,9 +96,9 @@ architecture rtl of HyperK_WCTE_V1495_top is
   constant N_LEVEL1 : integer := 8;
   constant N_LEVEL2 : integer := 4;
   
-  constant COUNT_WIDTH_INPUTS_AB : integer := 20;
+  constant COUNT_WIDTH_INPUTS_AB : integer := 24;
   constant COUNT_WIDTH_INPUTS_D : integer := 24;
-  constant COUNT_WIDTH_LOGIC : integer := 16;
+  constant COUNT_WIDTH_LOGIC : integer := 24;
 
   --------------------------
   ------- SIGNALS ----------
@@ -133,8 +133,9 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal level2_result_edge : std_logic_vector(N_LEVEL2-1 downto 0);
   
   signal ADDR_W : std_logic_vector(15 downto 0);  
+  signal reset_reg : std_logic;
   signal reset_125 : std_logic;
-  signal reset_lclk : std_logic;
+  signal reset_startup : std_logic;
   
   signal spill_veto : std_logic;  
   
@@ -145,12 +146,21 @@ begin
   begin
     if rising_edge(clk_125) then
       if ADDR_W = a_reg_rw(ARW_RESET) then
-        reset_125 <= '1';
+        reset_reg <= '1';
       else
-        reset_125 <= '0';
+        reset_reg <= '0';
       end if;
     end if;
   end process;
+  
+  inst_rst_sync : entity work.areset_sync
+    port map( 
+          clk           => clk_125,
+          async_rst_i   => not nLBRES,
+          sync_rst_o    => reset_startup
+          );
+			 
+  reset_125 <= reset_startup or reset_reg;  
       
   -- firmware version
   REG_R(AR_VERSION)(3 downto 0)   <= x"1";  -- Firmware release
@@ -273,7 +283,11 @@ begin
   end block blk_pre_logic;
   
         
-  proc_data_pipeline : process(clk_125)
+  proc_data_pipeline : process(clk_125)--  
+--	 lemo_out(0) <= gin(0);
+--	 lemo_out(1) <= clk_125;
+--	 lemo_out(7 downto 2) <= (others => '0');
+
   begin
     if rising_edge(clk_125) then
       allData <= B & A;
@@ -397,14 +411,14 @@ begin
   
    inst_pll : entity work.ALTERA_CMN_PLL
    generic map(
-     clk0_divide_by      => 8, --1,
+     clk0_divide_by      => 1,
      clk0_duty_cycle     => 50,
-     clk0_multiply_by    => 25,--2,
-     inclk0_input_frequency  => 25000 --16000  --actually period in us.
+     clk0_multiply_by    => 2,
+     inclk0_input_frequency  => 16000  --actually period in us.
    )
    port map (
      areset     => not nLBRES,
-     clk_in     => lclk,--gin(0),
+     clk_in     => gin(0),
      clk_out_0  => clk_125,
      locked     => open
    );
@@ -413,6 +427,7 @@ begin
   blk_lemo_output : block
     constant A395D_Mapping : t_int_v(0 to 7) := (0, 16, 1, 17,  12, 28, 13, 29);
     signal lemo_out : std_logic_vector(7 downto 0);
+	 signal deadTime : std_logic;
   begin
    
     inst_lemo : work.lemo_output
@@ -434,15 +449,23 @@ begin
       regs_in(7) => REG_RW(ARW_F(7)),
       data_out => lemo_out
     );
---  
---	 lemo_out(0) <= gin(0);
---	 lemo_out(1) <= clk_125;
---	 lemo_out(7 downto 2) <= (others => '0');
 
-
-    gen_lemo_out : for i in 7 downto 0 generate
+    gen_lemo_out : for i in 7 downto 1 generate
       F_Expan(A395D_Mapping(i)) <= lemo_out(i);  
     end generate;
+	 
+	 inst_deadtime : entity work.trigger_deadtime
+    port map(
+      clk => clk_125,
+      reset => reset_125,
+      data_in => lemo_out(0),
+      data_out => deadTime,
+      deadtime_width => REG_RW(ARW_DEADTIME)
+    );
+	 
+	 F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' else
+	                              '0';
+
       
   end block blk_lemo_output;
   

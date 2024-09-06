@@ -1,0 +1,66 @@
+library IEEE;
+use IEEE.std_Logic_1164.all;
+use IEEE.std_Logic_unsigned.all;
+use IEEE.NUMERIC_STD.ALL;
+
+entity trigger_deadtime is
+port(
+  clk : in std_logic;
+  reset : in std_logic;
+  data_in : in std_logic;
+  data_out : out std_logic;
+  deadtime_width : in std_logic_vector(31 downto 0)
+);
+end entity trigger_deadtime;
+
+architecture behavioral of trigger_deadtime is
+
+  type t_deadtime_state is (IDLE, COUNTING);
+  signal deadtime_state : t_deadtime_state := IDLE;
+
+begin
+
+
+  proc_deadtime : process(clk)
+    variable counter : integer;
+  begin
+    if rising_edge(clk) then
+      if reset = '1' then
+        data_out <= '0';
+        counter := 0;
+        deadtime_state <= IDLE;
+      else
+        case deadtime_state is
+
+          when IDLE =>
+            if data_in = '1' then
+              counter := 1;
+              data_out <= '1';
+              deadtime_state <= COUNTING;
+            else
+              counter := 0;
+              data_out <= '0';
+              deadtime_state <= IDLE;
+            end if;
+
+
+          when COUNTING =>
+            if counter > to_integer(unsigned(deadtime_width)) then
+              counter := 0;
+              data_out <= '0';
+              deadtime_state <= IDLE;
+            else
+              data_out <= '1';
+              counter := counter +1;
+              deadtime_state <= COUNTING;
+            end if;
+
+        end case;
+
+
+      end if;
+    end IF;
+  end process proc_deadtime;
+
+
+end architecture behavioral;

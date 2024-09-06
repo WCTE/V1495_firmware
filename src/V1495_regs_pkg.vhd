@@ -26,7 +26,7 @@ package V1495_regs IS
   -- The number of read only registers
   constant numRregs :  integer := 114;
   -- The number or read/write registers
-  constant numRWregs : integer := 134;
+  constant numRWregs : integer := 135;
   
   -- Start address of read-only registers
   constant R_start_address : std_logic_vector(15 downto 0) := x"1000";
@@ -79,6 +79,8 @@ package V1495_regs IS
   
   constant ARW_PRESPILL : integer := 111; -- Set to channel used for pre-spill signal
   constant ARW_ENDPSILL : integer := 112; -- Set to channel used for end of spill signal
+  
+  constant ARW_DEADTIME : integer := 134; -- Length of deadtime after trigger output on lemo(0)
 
 end package V1495_regs;
 
