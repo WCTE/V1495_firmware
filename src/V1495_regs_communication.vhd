@@ -1,9 +1,9 @@
 
 
 library ieee;
-use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
-use IEEE.Std_Logic_unsigned.all;
+use IEEE.std_Logic_1164.all;
+use IEEE.NUMERIC_STD.ALL; 
+use IEEE.std_Logic_unsigned.all;
 
 use work.V1495_regs.all;
 use work.functions.all;
@@ -57,7 +57,7 @@ architecture rtl of V1495_regs_communication is
 	signal rd_s : std_logic;
 	
 	-- in clk_data domain
-	signal read_address : std_logic_vector(15 downto 0);
+	signal read_address : std_logic_vector(11 downto 0);
 	signal read_enable : std_logic;
 	
 	signal read_reg_data : std_logic_vector(31 downto 0);
@@ -189,17 +189,6 @@ begin
 				  rd_s <= '0';
           nREADY    <= '0';  -- Assuming that the register is ready for reading
 			 rreg := read_reg_data;
---			 l_reg_read : for k in 0 to N_R_REGS - 1 loop
---			   if ADDR = a_reg_r(k) then
---				  rreg := REG_R(k);
---				end if;
---			 end loop;
---			 l_reg_read_write : for k in 0 to N_RW_REGS - 1 loop
---				if ADDR = a_reg_rw(k) then
---				  rreg := REG_RW(k);
---				end if;
---			 end loop;
-			 
           LBSTATE  <= LBREADH;
           LADout <= rreg(15 downto 0);  -- Save the lower 16 bits of the data
           LADoe  <= '1';  -- Enable the output on the Local Bus
@@ -220,6 +209,7 @@ begin
   blk_read_Fifo : block
   
     signal wr_en : std_logic;
+	 signal wr_en_dly : std_logic;
 	 signal wr_usedw : std_logic_vector(1 downto 0);
 	 signal wr_full : std_logic;
 	 signal wr_empty : std_logic;
@@ -232,9 +222,16 @@ begin
 	 signal wr_data : std_logic_vector(31 downto 0) := (others => '1');
 	 signal rd_data : std_logic_vector(31 downto 0);
 	
-    type   readFifo_t is (IDLE, R_REG, RW_REG, WRITING);
+    type   readFifo_t is (IDLE, START, WRITING);
 	 signal readFifo : readFifo_t := IDLE;
+	 
+	 signal RW_check : std_logic;
+ 
+	 signal index : std_logic_vector(10 downto 0);
    	
+	 signal dly_out : std_logic_vector(12 downto 0);	
+	 signal index_int : integer;
+	 signal RW_check_dly : std_logic;
   
   begin
   
@@ -244,36 +241,22 @@ begin
 	    case readFifo is
 		 
 		   when IDLE =>
+			  RW_check <= '0';
 			  wr_en <= '0';
 			  if read_enable = '1' then
-			    if read_address(13) = '1' then
-				   readFifo <= RW_REG;
-				 else
-				   readFifo <= R_REG;
-				 end if;
+			    readFifo <= START;
 			  else
 			    readFifo <= IDLE;
 			  end if;
-				 
-			when R_REG =>
-	   	  l_reg_read : for k in 0 to N_R_REGS - 1 loop
-			    if read_address = a_reg_r(k) then
-				   wr_data <= REG_R(k);
-				 end if;
-			  end loop;
-			  readFifo <= WRITING;
-			  wr_en <= '0';
-			 
-		   when RW_REG =>
-           l_reg_read_write : for k in 0 to N_RW_REGS - 1 loop
-				 if read_address = a_reg_rw(k) then
-				   wr_data <= REG_RW(k);
-				 end if;
-			  end loop;
-			  readFifo <= WRITING;
-			  wr_en <= '0';
 			  
-			when WRITING =>
+			when START =>
+			    wr_en <= '0';
+				 RW_check <= read_address(11);
+				 index <= read_address(10 downto 0);
+			    readFifo <= WRITING;
+				 
+				 
+   		when WRITING =>
 			  wr_en <= '1';
 			  readFifo <= IDLE;
 			  
@@ -282,8 +265,25 @@ begin
 		 end case;	
      end if;
 	end process proc_Fifo_control;
-  
-  
+	
+ inst_name: entity work.delay_chain
+ generic map (
+   W_WIDTH  => 13,
+   D_DEPTH   => 5
+ )
+ port map (
+   clk       => clk_data,
+   en_i      => '1',
+   sig_i     => RW_check & wr_en & index,
+   sig_o     => dly_out
+ );
+	
+	index_int <= to_integer(unsigned(dly_out(10 downto 0)));
+	RW_check_dly <= dly_out(12);
+	
+   wr_en_dly <= dly_out(11);
+   wr_data <= REG_RW(index_int) when RW_check_dly = '1' else
+	           REG_R(index_int);
   
    dcfifo_component : dcfifo
    GENERIC MAP (
@@ -308,7 +308,7 @@ begin
 		          aclr => not nLBRES,
                 rdclk => LCLK,
                 wrclk => clk_data,
-                wrreq => wr_en,
+                wrreq => wr_en_dly,
                 data => wr_data,
                 rdreq => rd_en,
                 wrfull => wr_full,
@@ -316,18 +316,7 @@ begin
                 wrusedw => wr_usedw,
                 rdusedw => rd_usedw
         );
-  
---     proc_rd : process( LCLK)
---	  begin
---	  if rising_edge(LCLK) then
---	    if unsigned(rd_usedw) >= 1 then
---		   rd_en <= '1';
---		 else 
---		   rd_en <= '0';
---		 end if;
---	  end if;
---	  end process proc_rd;
-	  
+  	  
 	  rd_en <= '1' when unsigned(rd_usedw) >= 1 else
 	           '0';
 				  
@@ -351,20 +340,25 @@ begin
 	 signal rd_full : std_logic;
 	 signal rd_empty : std_logic;
 	 
-	 signal wr_data : std_logic_vector(48 downto 0) := (others => '1');
-	 signal rd_data : std_logic_vector(48 downto 0);
+	 signal wr_data : std_logic_vector(44 downto 0) := (others => '1');
+	 signal rd_data : std_logic_vector(44 downto 0);
+	 
+	 signal tmpData : std_logic_vector(31 downto 0);
+	 signal tmpaddr : std_logic_vector(11 downto 0);
 	 
 	 
-	type   postFifo_t is (IDLE, READING, SETTING);
+	type   postFifo_t is (IDLE, READING, CHECK, REGWRITE, REGREAD, REGGET);
 	signal postFifo : postFifo_t := IDLE;
 	 
   begin
   
     wr_en <= wr_s or rd_s;
-	 wr_data <= rd_s & addr_s & data_s when wr_en = '1' else
+	 wr_data <= rd_s & addr_s(13) & addr_s(11 downto 1) & data_s when wr_en = '1' else
 	            (others =>  '0');
 					
+					
   	 proc_fifo_read : process(clk_data)
+	   variable reg_k : integer;
 	 begin
 	   if rising_edge(clk_data) then
 		
@@ -385,27 +379,35 @@ begin
 		      ADDR_W <= (others => '0');
 			   if unsigned(rd_usedw) = 0 then
 				  rd_en <='0';
-				  postFifo <= SETTING;
+				  postFifo <= CHECK;
 				else
 				  rd_en <='1';
 				  postFifo <= READING;
 				end if;
 				
-			 when SETTING =>
-				ADDR_W <= rd_data(47 downto 32);
-			   if rd_data(48) = '0' then
-				  read_enable <= '0';
-				  l_reg_write : for k in 0 to N_RW_REGS - 1 loop
-			       if rd_data(47 downto 32) = a_reg_rw(k) then
-			   	   REG_RW(k) <= rd_data(31 downto 0);
-			       end if;					 
-			     end loop;
-				  read_enable <= '0';
+			 when CHECK =>
+				read_enable <= '0';
+			   ADDR_W <= "00"& rd_data(43)&'1'&rd_data(42 downto 32) & '0';
+				tmpaddr <= rd_data(43 downto 32);
+			   if rd_data(44) = '0' then
+				  tmpData <= rd_data(31 downto 0);
+				  postFifo <= REGGET;
 				else
-				  read_address <= rd_data(47 downto 32);
-				  read_enable <= '1';
+				  postFifo <= REGREAD;
 				end if;
-				  
+				
+			 when REGGET =>
+				read_enable <= '0';
+				reg_k := to_integer(unsigned(tmpaddr(10 downto 0)));
+				postFifo <= REGWRITE;
+				
+			 when REGWRITE =>
+			   REG_RW(reg_k) <= tmpData;
+				postFifo <= IDLE;
+				
+			 when REGREAD =>
+				read_address <= tmpaddr;
+				read_enable <= '1';				  
 				postFifo <= IDLE;
 			 		  
 		  end case;
@@ -413,7 +415,8 @@ begin
 		
 	  end if;	
 	 end process proc_fifo_read;
-	 	   
+
+	 
       dcfifo_component : dcfifo
         GENERIC MAP (
                 add_ram_output_register => "ON",
@@ -422,7 +425,7 @@ begin
                 lpm_numwords => 4,
                 lpm_showahead => "OFF",
                 lpm_type => "dcfifo",
-                lpm_width => 49,
+                lpm_width => 45,
                 wrsync_delaypipe    => 0,
                 rdsync_delaypipe    => 0,
 					 
