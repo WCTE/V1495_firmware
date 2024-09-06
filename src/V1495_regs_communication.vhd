@@ -25,7 +25,6 @@ entity V1495_regs_communication is
     nREADY     : out    std_logic;
     nINT       : out	std_logic;
     LAD        : inout  std_logic_vector(15 DOWNTO 0);
-    WR_DLY_CMD : out	std_logic_vector( 1 DOWNTO 0);
 	 
 	 ADDR_W : out std_logic_vector(15 downto 0);
 
@@ -131,7 +130,6 @@ begin
 			 data_s <= (others => '0');
           LADoe   <= '0';
 			 nREADY  <= '1';
-          WR_DLY_CMD  <= (others => '0');
           if (nADS = '0') then        -- Start cycle
             ADDR <= LAD;              -- Address Sampling	
 	         addr_s <= LAD;			
