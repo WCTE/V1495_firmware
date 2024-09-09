@@ -91,20 +91,21 @@ def getRegisterList(filename):
     return REGISTERS
 
 
+if __name__ == '__main__':
 
-REGISTERS = getRegisterList("../src/V1495_regs_pkg.vhd")
+    REGISTERS = getRegisterList("../src/V1495_regs_pkg.vhd")
 
-for rType in REGISTERS.keys():
-    print(rType)
-    for name in REGISTERS[rType]:
-    
-        print(name+":")
-        print("\t"+REGISTERS[rType][name]['comment'])
-        print("\t", end="")
-        for address in REGISTERS[rType][name]['addresses']:
-            print(hex(address)+", ", end="")
+    for rType in REGISTERS.keys():
+        print(rType)
+        for name in REGISTERS[rType]:
+
+            print(name+":")
+            print("\t"+REGISTERS[rType][name]['comment'])
+            print("\t", end="")
+            for address in REGISTERS[rType][name]['addresses']:
+                print(hex(address)+", ", end="")
+            print()
         print()
-    print()
 
 
 
