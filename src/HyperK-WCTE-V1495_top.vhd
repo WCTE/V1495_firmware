@@ -125,6 +125,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal input_B_mask     : std_logic_vector(31 downto 0) := (others => 'Z');
   signal D_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
   signal F_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
+  signal E_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
 
   -- Raw data for logic elements   
   signal allData : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
@@ -148,7 +149,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   signal level2_result_edge : std_logic_vector(N_LEVEL2-1 downto 0);
   
   -- Most recently requested address
-  signal ADDR_W : std_logic_vector(15 downto 0);  
+  signal ADDR_W : std_logic_vector(11 downto 0);  
   
   -- Reset based on R/W of specific register
   signal reset_reg : std_logic;
@@ -167,7 +168,7 @@ begin
   proc_reset : process (clk_125)
   begin
     if rising_edge(clk_125) then
-      if ADDR_W = a_reg_rw(ARW_RESET) then
+	   if ADDR_W(11) = '1' and to_integer(unsigned(ADDR_W(10 downto 0))) = ARW_RESET then
         reset_reg <= '1';
       else
         reset_reg <= '0';
@@ -450,8 +451,8 @@ begin
     locked     => open
   );
 
-  -- Lemo output on port D
-  blk_lemo_output : block
+  -- Lemo output on port F
+  blk_lemo_output_F : block
     -- Mapping of D ports to lemo ports (from V1495 manual)
     constant A395D_Mapping : t_int_v(0 to 7) := (0, 16, 1, 17,  12, 28, 13, 29);
     signal lemo_out : std_logic_vector(7 downto 0);
@@ -496,8 +497,62 @@ begin
 	 
     F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' else
                                  '0';
-
-  end block blk_lemo_output;
+								
+  end block blk_lemo_output_F;
+  
+    blk_lemo_output_E : block
+    -- Mapping of D ports to lemo ports (from V1495 manual)
+    constant A395D_Mapping : t_int_v(0 to 7) := (0, 16, 1, 17,  12, 28, 13, 29);
+    signal lemo_out : std_logic_vector(7 downto 0);
+    signal deadTime : std_logic;
+  begin
+   
+    -- Set the output of the lemo connectors to signals based on register settings
+    inst_lemo : work.lemo_output
+      generic map(
+        n_channels =>  N_LEVEL2+N_LEVEL1+32+N_LOGIC_CHANNELS
+      )
+      port map (
+        clk => clk_125,
+        reset => reset_125,
+        raw_in =>  level2_result &            level1_result &           D & allData,
+        prep_in => level2_result_edge & prepared_signals_l1 & x"00000000" & prepared_signals,
+        regs_in(0) => REG_RW(ARW_E(0)),
+        regs_in(1) => REG_RW(ARW_E(1)),
+        regs_in(2) => REG_RW(ARW_E(2)),
+        regs_in(3) => REG_RW(ARW_E(3)),
+        regs_in(4) => REG_RW(ARW_E(4)),
+        regs_in(5) => REG_RW(ARW_E(5)),
+        regs_in(6) => REG_RW(ARW_E(6)),
+        regs_in(7) => REG_RW(ARW_E(7)),
+        data_out => lemo_out
+      );
+ 
+    -- Map outputs of lemo_output to the actuall lemo connectors
+    gen_lemo_out : for i in 7 downto 1 generate
+      E_Expan(A395D_Mapping(i)) <= lemo_out(i);  
+    end generate;
+	 
+    -- Generate deadtime after trigger on lemo #0
+    inst_deadtime : entity work.trigger_deadtime
+    port map(
+      clk => clk_125,
+      reset => reset_125,
+      data_in => lemo_out(0),
+      data_out => deadTime,
+      deadtime_width => REG_RW(ARW_DEADTIME)
+    );
+	 
+    E_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' else
+                                 '0';
+								
+  end block blk_lemo_output_E;
+  
+  
+  
+  
+  
+  
   
   -- Generate veto based on a start signal and an end signal
   blk_spill_veto : block
@@ -521,7 +576,9 @@ begin
   nOED  <=  '1';    -- Output Enable Port D (only for A395D)
   nOEG  <=  '1';    -- Output Enable Port G
   D     <=  D_Expan  when IDD = "011"  else (others => 'Z');
+  
   F     <=  F_Expan    when IDF = "011"  else (others => 'Z');
+  E     <=  E_Expan    when IDE = "011"  else (others => 'Z');
 
   
  

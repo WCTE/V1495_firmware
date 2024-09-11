@@ -33,7 +33,6 @@ end entity level2_logic;
 architecture behavioral of level2_logic is
 
     signal result_s : std_logic;
-    signal l_type_s : std_logic;
     signal mask_s : std_logic_vector(N_CHANNELS-1 downto 0);
     signal count_s : std_logic_vector(COUNTER_WIDTH-1 downto 0);
 	 
@@ -51,7 +50,7 @@ architecture behavioral of level2_logic is
       reset => reset,
       data_in => data_in,
       mask => mask_s,
-      type_i => l_type_s,
+      type_i => logic_type,
       result => result_s
     );
 
@@ -64,7 +63,7 @@ architecture behavioral of level2_logic is
         clk => clk,
         reset => reset,
         count_en => '1',
-        data_in => l_type_s,
+        data_in => logic_type,
         count_out => count_s
       );   
 	 

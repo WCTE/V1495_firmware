@@ -26,7 +26,7 @@ package V1495_regs IS
   -- The number of read only registers
   constant numRregs :  integer := 114;
   -- The number or read/write registers
-  constant numRWregs : integer := 135;
+  constant numRWregs : integer := 143;
   
   -- Start address of read-only registers
   constant R_start_address : std_logic_vector(15 downto 0) := x"1000";
@@ -74,6 +74,7 @@ package V1495_regs IS
   constant ARW_RESET : integer := 1; -- Register controlled reset. A read or write to this register will generate a reset
   
   constant ARW_F : t_int_v(0 to 7) := GenIntegerList(92, 8); -- Signals routed to the F NIM outputs
+  constant ARW_E : t_int_v(0 to 7) := GenIntegerList(135, 8); -- Signals routed to the F NIM outputs
   
   constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
   

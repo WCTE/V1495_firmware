@@ -26,7 +26,7 @@ entity V1495_regs_communication is
     nINT       : out	std_logic;
     LAD        : inout  std_logic_vector(15 DOWNTO 0);
 	 
-	 ADDR_W : out std_logic_vector(15 downto 0);
+	 ADDR_W : out std_logic_vector(11 downto 0);
 
     REG_R  : in reg_data(N_R_REGS - 1 downto 0);
     REG_RW : buffer reg_data(N_RW_REGS - 1 downto 0)
@@ -47,8 +47,6 @@ architecture rtl of V1495_regs_communication is
 	signal LADout    : std_logic_vector(15 downto 0);
 	-- Lower 16 bits of the 32 bit data
 	signal DTL       : std_logic_vector(15 downto 0);
-	-- Address latched from the LAD bus
-	signal ADDR      : std_logic_vector(15 downto 0);
 	
 	signal addr_s  : std_logic_vector(15 downto 0);
 	signal data_s  : std_logic_vector(31 downto 0);
@@ -112,7 +110,6 @@ begin
 --      REG_RW(ARW_DMASK(0))     <= X"00000000";    --Default value
       nREADY      <= '1';
       LADoe       <= '0';
-      ADDR        <= (others => '0');
       DTL         <= (others => '0');
       LADout      <= (others => '0');
       rreg        := (others => '0');
@@ -131,7 +128,6 @@ begin
           LADoe   <= '0';
 			 nREADY  <= '1';
           if (nADS = '0') then        -- Start cycle
-            ADDR <= LAD;              -- Address Sampling	
 	         addr_s <= LAD;			
 		      --ADDR_W <= LAD;
             if (WnR = '1') then       -- Write Access to the registers
@@ -184,7 +180,7 @@ begin
         when LBREADL =>  
 			 data_s <= (others => '0');
 			 wr_s <= '0';
-				  rd_s <= '0';
+			 rd_s <= '0';
           nREADY    <= '0';  -- Assuming that the register is ready for reading
 			 rreg := read_reg_data;
           LBSTATE  <= LBREADH;
@@ -208,8 +204,8 @@ begin
   
     signal wr_en : std_logic;
 	 signal wr_en_dly : std_logic;
-	 signal wr_usedw : std_logic_vector(1 downto 0);
-	 signal wr_full : std_logic;
+	 --signal wr_usedw : std_logic_vector(1 downto 0);
+	 --signal wr_full : std_logic;
 	 signal wr_empty : std_logic;
 	 
 	 signal rd_en : std_logic;
@@ -264,10 +260,12 @@ begin
      end if;
 	end process proc_Fifo_control;
 	
- inst_name: entity work.delay_chain
+	
+	
+ inst_dly: entity work.delay_chain
  generic map (
    W_WIDTH  => 13,
-   D_DEPTH   => 5
+   D_DEPTH   => 4
  )
  port map (
    clk       => clk_data,
@@ -280,6 +278,9 @@ begin
 	RW_check_dly <= dly_out(12);
 	
    wr_en_dly <= dly_out(11);
+
+	
+	
    wr_data <= REG_RW(index_int) when RW_check_dly = '1' else
 	           REG_R(index_int);
   
@@ -309,9 +310,9 @@ begin
                 wrreq => wr_en_dly,
                 data => wr_data,
                 rdreq => rd_en,
-                wrfull => wr_full,
+                --wrfull => wr_full,
                 q => rd_data,
-                wrusedw => wr_usedw,
+                --wrusedw => wr_usedw,
                 rdusedw => rd_usedw
         );
   	  
@@ -329,8 +330,8 @@ begin
   
   blk_write_Fifo : block
     signal wr_en : std_logic;
-	 signal wr_usedw : std_logic_vector(1 downto 0);
-	 signal wr_full : std_logic;
+	 --signal wr_usedw : std_logic_vector(1 downto 0);
+	 --signal wr_full : std_logic;
 	 signal wr_empty : std_logic;
 	 
 	 signal rd_en : std_logic;
@@ -385,7 +386,7 @@ begin
 				
 			 when CHECK =>
 				read_enable <= '0';
-			   ADDR_W <= "00"& rd_data(43)&'1'&rd_data(42 downto 32) & '0';
+			   ADDR_W <= rd_data(43) & rd_data(42 downto 32);
 				tmpaddr <= rd_data(43 downto 32);
 			   if rd_data(44) = '0' then
 				  tmpData <= rd_data(31 downto 0);
@@ -441,9 +442,9 @@ begin
                 wrreq => wr_en,
                 data => wr_data,
                 rdreq => rd_en,
-                wrfull => wr_full,
+                --wrfull => wr_full,
                 q => rd_data,
-                wrusedw => wr_usedw,
+                --wrusedw => wr_usedw,
                 rdusedw => rd_usedw
         );
   
