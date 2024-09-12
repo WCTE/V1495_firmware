@@ -96,6 +96,8 @@ architecture rtl of HyperK_WCTE_V1495_top is
   ------ CONSTANTS ---------
   --------------------------
 
+  constant useExternalClk : boolean := true;
+                                       
   -- Number of input channels used for logic
   constant N_LOGIC_CHANNELS : integer := A'length + B'length;
   -- Number of level 1 logic units
@@ -434,22 +436,41 @@ begin
    level2_result_edge(i) <= not in_dly and result;
 	   
   end generate gen_logic_level_2;
+
+  gen_pll : if useExternalClk generate
   
-  ------------------------------------------------
-  -- PLL to generate 125 MHz clock from 62.5 MHz input on GIN(0)
-  inst_pll : entity work.ALTERA_CMN_PLL
-  generic map(
-    clk0_divide_by      => 1,
-    clk0_duty_cycle     => 50,
-    clk0_multiply_by    => 2,
-    inclk0_input_frequency  => 16000  --actually period in us.
-  )
-  port map (
-    areset     => not nLBRES,
-    clk_in     => gin(0),
-    clk_out_0  => clk_125,
-    locked     => open
-  );
+    ------------------------------------------------
+    -- PLL to generate 125 MHz clock from 62.5 MHz input on GIN(0)
+    inst_pll : entity work.ALTERA_CMN_PLL
+    generic map(
+      clk0_divide_by      => 1,
+      clk0_duty_cycle     => 50,
+      clk0_multiply_by    => 2,
+      inclk0_input_frequency  => 16000  --actually period in us.
+    )
+    port map (
+      areset     => not nLBRES,
+      clk_in     => gin(0),
+      clk_out_0  => clk_125,
+      locked     => open
+    );
+  else generate
+    inst_pll : entity work.ALTERA_CMN_PLL
+    generic map(
+      clk0_divide_by      => 8,
+      clk0_duty_cycle     => 50,
+      clk0_multiply_by    => 25,
+      inclk0_input_frequency  => 25000  --actually period in us.
+    )
+    port map (
+      areset     => not nLBRES,
+      clk_in     => lclk,
+      clk_out_0  => clk_125,
+      locked     => open
+    );
+  end generate;
+
+  
 
   -- Lemo output on port F
   blk_lemo_output_F : block
