@@ -581,7 +581,7 @@ begin
     signal spill_veto_end : std_logic;	 
   begin
     spill_veto_start <= allData(to_integer(unsigned(REG_RW(ARW_PRESPILL)(6 downto 0))));
-    spill_veto_end <= allData(to_integer(unsigned(REG_RW(ARW_ENDPSILL)(6 downto 0))));
+    spill_veto_end <= allData(to_integer(unsigned(REG_RW(ARW_ENDSPILL)(6 downto 0))));
 	 
     inst_spill_veto: work.veto
     port map(

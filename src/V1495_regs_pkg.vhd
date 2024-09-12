@@ -9,13 +9,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 package V1495_regs IS
 
--- Register addresses (generically named for now)
-  type reg_addresses is array (natural range <>) of std_logic_vector(15 downto 0);
-  
   type t_int_v is array(natural range <>) of integer;
 
-  -- Function to generate register address from a starting value
-  function GenRegAddr(startReg : std_logic_vector(15 downto 0); numReg : integer) return reg_addresses;
   function GenIntegerList(start : integer; num : integer) return t_int_v;
            
   type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
@@ -30,15 +25,9 @@ package V1495_regs IS
   
   -- Start address of read-only registers
   constant R_start_address : std_logic_vector(15 downto 0) := x"1000";
-  -- addresses of read only registers
-  constant a_reg_r : reg_addresses(0 to numRregs-1) := GenRegAddr(R_start_address, numRregs);
-  
   -- Start address of read/write registers 
   constant RW_start_address : std_logic_vector(15 downto 0) := x"3000"; 
-  --std_logic_vector(unsigned(a_reg_r(numRregs-1)) + 2);
-  --addresses of read/write registers
-  constant a_reg_rw : reg_addresses(0 to numRWregs-1) := GenRegAddr(RW_start_address, numRWregs);
-       
+      
   -- Address index of read only registers
   constant AR_VERSION : integer := 6; -- Firmware version
   
@@ -79,7 +68,7 @@ package V1495_regs IS
   constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
   
   constant ARW_PRESPILL : integer := 111; -- Set to channel used for pre-spill signal
-  constant ARW_ENDPSILL : integer := 112; -- Set to channel used for end of spill signal
+  constant ARW_ENDSPILL : integer := 112; -- Set to channel used for end of spill signal
   
   constant ARW_DEADTIME : integer := 134; -- Length of deadtime after trigger output on lemo(0)
 
@@ -87,19 +76,6 @@ end package V1495_regs;
 
 package body V1495_regs is
 
-  -- Function to generate register address from a starting value
-  function GenRegAddr(startReg : std_logic_vector(15 downto 0);
-                      numReg : integer) return reg_addresses is
-    variable curAddress : unsigned(15 downto 0) := unsigned(startReg);
-    variable regList : reg_addresses(0 to numReg - 1);
-  begin
-    for i in 0 to numReg - 1 loop
-      regList(i) := std_logic_vector(curAddress);
-      curAddress := curAddress + 2;
-    end loop;
-    return regList;
-  end function;
-  
   function GenIntegerList(start : integer; num : integer) return t_int_v is
     variable numList : t_int_v(0 to num-1);
     variable curVal : integer := start;
