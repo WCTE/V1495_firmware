@@ -76,12 +76,12 @@ def getRegisterList(filename):
     with open(filename) as f:
         for line in f.readlines():
             for word in R_regnames:
-                if "constant "+word in line:
+                if "constant "+word+" " in line:
                     ADDRS, comment = parseLine(line, a_reg_r)
                     R_dict.update({word: {"addresses": ADDRS, "comment": comment}})  
 
             for word in RW_regnames:
-                if "constant "+word in line:
+                if "constant "+word+" " in line:
                     ADDRS, comment = parseLine(line, a_reg_rw)
                     RW_dict.update({word: {"addresses": ADDRS, "comment": comment}})
 
