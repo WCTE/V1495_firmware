@@ -101,7 +101,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   -- Number of input channels used for logic
   constant N_LOGIC_CHANNELS : integer := A'length + B'length;
   -- Number of level 1 logic units
-  constant N_LEVEL1 : integer := 8;
+  constant N_LEVEL1 : integer := 10;
   -- Number of level 2 logic units
   constant N_LEVEL2 : integer := 4;
   

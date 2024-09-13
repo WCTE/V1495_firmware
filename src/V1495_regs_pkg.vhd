@@ -21,7 +21,7 @@ package V1495_regs IS
   -- The number of read only registers
   constant numRregs :  integer := 114;
   -- The number or read/write registers
-  constant numRWregs : integer := 143;
+  constant numRWregs : integer := 155;
   
   -- Start address of read-only registers
   constant R_start_address : std_logic_vector(15 downto 0) := x"1000";
@@ -30,6 +30,8 @@ package V1495_regs IS
       
   -- Address index of read only registers
   constant AR_VERSION : integer := 6; -- Firmware version
+  
+  constant AR_GITSHA : integer := 5; -- Most recent GIT commit SHA
   
   constant AR_ACOUNTERS : t_int_v(0 to 31) := GenIntegerList(17, 32); -- Counters for A input
   constant AR_BCOUNTERS : t_int_v(0 to 31) := GenIntegerList(49, 32); -- Counters for B input
@@ -49,14 +51,19 @@ package V1495_regs IS
   constant ARW_AMASK_L1 : t_int_v(0 to 9) := GenIntegerList(54, 10); -- Mask on 'A' channels for level 1 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
   constant ARW_BMASK_L1 : t_int_v(0 to 9) := GenIntegerList(64, 10); -- Mask on 'B' channels for level 1 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
   
-  constant ARW_AINV_L1 : t_int_v(0 to 9) := GenIntegerList(113, 10); -- Invert 'A' channels for level 1 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
-  constant ARW_BINV_L1 : t_int_v(0 to 9) := GenIntegerList(123, 10); -- Invert 'B' channels for level 1 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
+  constant ARW_AINV_L1 : t_int_v(0 to 9) := GenIntegerList(113, 10); -- Invert 'A' channels for input into level 1 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
+  constant ARW_BINV_L1 : t_int_v(0 to 9) := GenIntegerList(123, 10); -- Invert 'B' channels for input into level 1 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
   
   
   constant ARW_AMASK_L2 : t_int_v(0 to 3)  := GenIntegerList(80, 4); -- Mask on 'A' channels for level 2 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate level 2 logic unit.
   constant ARW_BMASK_L2 : t_int_v(0 to 3)  := GenIntegerList(84, 4); -- Mask on 'B' channels for level 2 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate level 2 logic unit.
   constant ARW_L1MASK_L2 : t_int_v(0 to 3) := GenIntegerList(88, 4); -- Mask on level 1 results for level 2 logic. Each bit of the register corresponds to a level 1 logic unit. '0' is disabled, '1' is enabled. Each register corresponds to a separate level 2 logic unit.
+
+  constant ARW_AINV_L2 : t_int_v(0 to 3) := GenIntegerList(143, 4); -- Invert 'A' channels for input into level 2 logic. Each bit of the register corresponds to a channel of the A input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
+  constant ARW_BINV_L2 : t_int_v(0 to 3) := GenIntegerList(147, 4); -- Invert 'B' channels for input into level 2 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
+  constant ARW_L1INV_L2 : t_int_v(0 to 3) := GenIntegerList(151, 4); -- Invert 'L1' outputs for input into level 2 logic. Each bit of the register corresponds to a channel of the B input. '0' is disabled, '1' is enabled. Each register corresponds to a separate logic unit.
  
+  
  
   constant ARW_LOGIC_TYPE : integer := 0; -- Logic type for each logic unit. Bits 0-9 correspond level 1 logic units 0-9. Bits 10-13 correspond to level 2 logic units 0-3. '0' sets logic to 'and', '1' sets to  'or'
 
