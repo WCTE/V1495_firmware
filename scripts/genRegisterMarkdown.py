@@ -10,6 +10,27 @@ f.write("# Registers for V1495 firmware\n\n")
 
 f.write("This document contains information on the register used by the V1495 firmware.\n\n")
 
+f.write("- [Read only registers](#read-only-registers)\n")
+f.write("   * [Counters for the raw inputs](#counters-for-the-raw-inputs)\n")
+f.write("   * [Counters for the Logic units](#counters-for-the-logic-units)\n")
+f.write("- [Read/Write registers](#readwrite-registers)\n")
+f.write("   * [Reset](#reset)\n")
+f.write("   * [Delay and Gate control](#delay-and-gate-control)\n")
+f.write("      + [Raw inputs](#raw-inputs)\n")
+f.write("      + [Level 1 output](#level-1-output)\n")
+f.write("   * [Logic type](#logic-type)\n")
+f.write("   * [Channel masks](#channel-masks)\n")
+f.write("      + [Level 1 Input Masks](#level-1-input-masks)\n")
+f.write("      + [Level 2 Input Masks](#level-2-input-masks)\n")
+f.write("   * [Signal inversion](#signal-inversion)\n")
+f.write("      + [Inverting inputs to Level 1 logic](#inverting-inputs-to-level-1-logic)\n")
+f.write("      + [Inverting inputs to Level 2 logic](#inverting-inputs-to-level-2-logic)\n")
+f.write("   * [Prescaling](#prescaling)\n")
+f.write("   * [Output control](#output-control)\n")
+f.write("      + [LEMO ports](#lemo-ports)\n")
+f.write("      + [Post trigger veto](#post-trigger-veto)\n")
+f.write("      + [Spill veto](#spill-veto)\n\n")
+
 
 f.write("# Read only registers\n\n")
 f.write("Read only registers are used for counters and fixed information about the firmware.\n\n");
@@ -225,8 +246,8 @@ f.write("### Inverting inputs to Level 2 logic\n\n")
 f.write("Level 2 logic can have as inputs the result of level 1 logic as well as the `A` and `B` inputs\n\n")
 
 f.write("The registers to invert input into `L2` are:\n")
-f.write("| Unit | Invert `A` | Invert `B` |\n")
-f.write("| ---- | ------- | ------- |\n")
+f.write("| Unit | Invert `A` | Invert `B` | Invert `L1` |\n")
+f.write("| ---- | ---------- | ---------- | ----------- |\n")
 wanted_keys = ['ARW_AINV_L2', 'ARW_BINV_L2', 'ARW_L1INV_L2'] # The keys you want
 masks = dict((k, READWRITE[k]) for k in wanted_keys if k in READWRITE)
 for i in range(len(masks['ARW_AINV_L2']['addresses'])):

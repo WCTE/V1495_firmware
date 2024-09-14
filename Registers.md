@@ -2,6 +2,27 @@
 
 This document contains information on the register used by the V1495 firmware.
 
+- [Read only registers](#read-only-registers)
+   * [Counters for the raw inputs](#counters-for-the-raw-inputs)
+   * [Counters for the Logic units](#counters-for-the-logic-units)
+- [Read/Write registers](#readwrite-registers)
+   * [Reset](#reset)
+   * [Delay and Gate control](#delay-and-gate-control)
+      + [Raw inputs](#raw-inputs)
+      + [Level 1 output](#level-1-output)
+   * [Logic type](#logic-type)
+   * [Channel masks](#channel-masks)
+      + [Level 1 Input Masks](#level-1-input-masks)
+      + [Level 2 Input Masks](#level-2-input-masks)
+   * [Signal inversion](#signal-inversion)
+      + [Inverting inputs to Level 1 logic](#inverting-inputs-to-level-1-logic)
+      + [Inverting inputs to Level 2 logic](#inverting-inputs-to-level-2-logic)
+   * [Prescaling](#prescaling)
+   * [Output control](#output-control)
+      + [LEMO ports](#lemo-ports)
+      + [Post trigger veto](#post-trigger-veto)
+      + [Spill veto](#spill-veto)
+
 # Read only registers
 
 Read only registers are used for counters and fixed information about the firmware.
@@ -9,7 +30,7 @@ Read only registers are used for counters and fixed information about the firmwa
 Registers which provide information about the firmware are:
  - AR_VERSION: Firmware version
    - `0x100c`
- - AR_GITSHA: Most recent GIT commit SHA
+ - AR_GIT: Most recent GIT commit SHA
    - `0x100a`
 
 
@@ -202,8 +223,8 @@ The registers to invert input into `L1` are:
 Level 2 logic can have as inputs the result of level 1 logic as well as the `A` and `B` inputs
 
 The registers to invert input into `L2` are:
-| Unit | Invert `A` | Invert `B` |
-| ---- | ------- | ------- |
+| Unit | Invert `A` | Invert `B` | Invert `L1` |
+| ---- | ---------- | ---------- | ----------- |
 | 0 | 0x311e | 0x3126 | 0x312e | 
 | 1 | 0x3120 | 0x3128 | 0x3130 | 
 | 2 | 0x3122 | 0x312a | 0x3132 | 
