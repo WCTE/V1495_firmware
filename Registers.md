@@ -154,7 +154,7 @@ For example, setting this register to `0x1B97` (`0b01-1011-1001-0111`) will set:
  - L1 units 0, 1, 2, 4, 7, 8, and 9 to `or` mode
  - L1 units 3, 5, and 6 to `and` mode
  - L2 units 1 and 2 to `or` mode
- - L1 units 0 and 3 to `and` mode
+ - L2 units 0 and 3 to `and` mode
 
 ## Channel masks
 
@@ -164,8 +164,9 @@ Each bit of a channel mask register corresponds to an input into a logic unit
 For example, setting register `0x3076` to `0x000072C5` (`0b0000-0000-0000-0000-0111-0010-1100-0101`) will:
  - enable channels A0, A2, A6, A7, A9, A12, A13, and A14
  - disable all other channels
+
 For level 1 logic unit #5
-Since register `0x3076 is a mask on `A` channels for `L1` #5
+
 ### Level 1 Input Masks
 
 The masks for input into `L1` are:
