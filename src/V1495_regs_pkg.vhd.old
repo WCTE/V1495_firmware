@@ -18,7 +18,7 @@ package V1495_regs IS
   type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
   
   -- The latest git SHA, updated at compile time
-  constant GIT_SHA : std_logic_vector(31 downto 0) := x"00b790d8";
+  constant GIT_SHA : std_logic_vector(31 downto 0) := x"00000000";
 
   -- The number of read only registers
   constant numRregs :  integer := 114;
@@ -33,7 +33,7 @@ package V1495_regs IS
   -- Address index of read only registers
   constant AR_VERSION : integer := 6; -- Firmware version
   
-  constant AR_GIT : integer := 5; -- Most recent GIT commit SHA
+  constant AR_GITSHA : integer := 5; -- Most recent GIT commit SHA
   
   constant AR_ACOUNTERS : t_int_v(0 to 31) := GenIntegerList(17, 32); -- Counters for A input
   constant AR_BCOUNTERS : t_int_v(0 to 31) := GenIntegerList(49, 32); -- Counters for B input

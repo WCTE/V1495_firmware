@@ -192,6 +192,8 @@ begin
   REG_R(AR_VERSION)(3 downto 0)   <= x"2";  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= x"0";  -- Demo number
 
+  REG_R(AR_GIT) <= GIT_SHA;
+  
   -- Register interface
   inst_regs : entity work.V1495_regs_communication
   generic map(
