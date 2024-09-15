@@ -35,7 +35,7 @@ Data input into `D` is only counted, it is not involved in any logic.
 
 ### Level 1 logic
 
-The 64 channels after pre-logic treatment are passed to 8 logic units.
+The 64 channels after pre-logic treatment are passed to 10 logic units.
 Each unit takes in all 64 channels, but only operates on channels which are enabled via register.
 The Logic unit `and`s or `or`s the enabled channels together to produce a result.
 This result has it's own delay and gate applied, and is then passed on to level 2.
