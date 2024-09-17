@@ -238,22 +238,22 @@ The results of level 1 logic can be prescaled by powers of 2.
 For a prescale value n, only 1/n positive results coming from the logic unit will be kept.
 The prescale factor is set by the most significant bit of the relevant register.
 
-For example, to prescale the output of `L1` #7 by 4, set register `0x30d4` to `0x10` (`0b10000` or 2<sup>4</sup>).
+For example, to prescale the output of `L1` #7 by 4, set register `0x30d6` to `0x10` (`0b10000` or 2<sup>4</sup>).
 The prescale will ignore any bits lower than the MSB: 0x10 (0b10000) will produce the same prescaling as 0x1F (0b11111)
 
 The registers to prescale the output of `L1 are:
 | Unit | register |
 | ---- | ------- |
-| 0 | 0x30c6 | 
-| 1 | 0x30c8 | 
-| 2 | 0x30ca | 
-| 3 | 0x30cc | 
-| 4 | 0x30ce | 
-| 5 | 0x30d0 | 
-| 6 | 0x30d2 | 
-| 7 | 0x30d4 | 
-| 8 | 0x30d6 | 
-| 9 | 0x30d8 | 
+| 0 | 0x30c8 | 
+| 1 | 0x30ca | 
+| 2 | 0x30cc | 
+| 3 | 0x30ce | 
+| 4 | 0x30d0 | 
+| 5 | 0x30d2 | 
+| 6 | 0x30d4 | 
+| 7 | 0x30d6 | 
+| 8 | 0x30d8 | 
+| 9 | 0x30da | 
 
 
 ## Output control

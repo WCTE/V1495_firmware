@@ -18,7 +18,7 @@ package V1495_regs IS
   type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
   
   -- The latest git SHA, updated at compile time
-  constant GIT_SHA : std_logic_vector(31 downto 0) := x"00b790d8";
+  constant GIT_SHA : std_logic_vector(31 downto 0) := x"0bc26b9f";
 
   -- The number of read only registers
   constant numRregs :  integer := 114;
@@ -74,7 +74,7 @@ package V1495_regs IS
   constant ARW_F : t_int_v(0 to 7) := GenIntegerList(92, 8); -- Signals routed to the F NIM outputs
   constant ARW_E : t_int_v(0 to 7) := GenIntegerList(135, 8); -- Signals routed to the E NIM outputs
   
-  constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(99, 10); -- Prescale factor applied after Level 1 logic
+  constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(100, 10); -- Prescale factor applied after Level 1 logic
   
   constant ARW_PRESPILL : integer := 111; -- Set to channel used for pre-spill signal
   constant ARW_ENDSPILL : integer := 112; -- Set to channel used for end of spill signal
