@@ -21,6 +21,8 @@ entity level2_logic is
     data_in : in std_logic_vector(N_CHANNELS-1 downto 0);
     -- Switch between and/or logic
     logic_type : in std_logic;
+    -- Invert signals
+    invert : in std_logic_vector(N_CHANNELS-1 downto 0);
     -- result of this logic unit
     result : out std_logic;
     -- counts number of times logic result is true
@@ -35,10 +37,17 @@ architecture behavioral of level2_logic is
     signal result_s : std_logic;
     signal mask_s : std_logic_vector(N_CHANNELS-1 downto 0);
     signal count_s : std_logic_vector(COUNTER_WIDTH-1 downto 0);
+    signal data_s: std_logic_vector(N_CHANNELS-1 downto 0);
 	 
   begin  
   
     mask_s <= mask;
+	 
+	 -- Invert data if requested
+    gen_inv: for i in N_CHANNELS - 1 downto 0 generate
+      data_s(i) <= not data_in(i) when invert(i) = '1' else
+                   data_in(i);
+    end generate gen_inv;
 
     -- Instance of logic unit
     inst_logic : entity work.logic_unit
@@ -48,7 +57,7 @@ architecture behavioral of level2_logic is
     port map(
       clk => clk,
       reset => reset,
-      data_in => data_in,
+      data_in => data_s,
       mask => mask_s,
       type_i => logic_type,
       result => result_s
