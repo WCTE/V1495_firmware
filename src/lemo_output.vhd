@@ -25,35 +25,42 @@ entity lemo_output is
 end entity lemo_output;
 
 architecture behavioral of lemo_output is
-  signal channels : t_int_v(7 downto 0);
-  signal rawOrNot : std_logic_vector(7 downto 0);
   
-  signal output : std_logic_vector(7 downto 0) := (others => '0');
+ 
+  signal dlyin : std_logic_vector(7 downto 0) := (others => '0');
+  
     
 begin
 
   
   gen_integers : for i in 7 downto 0 generate
+    signal rawOrNot : std_logic;
+	 signal channel : integer;
+	 
+  begin
     -- Check if raw or prescaled channel is requested
-    rawOrNot(i) <= regs_in(i)(7);
+    rawOrNot <= regs_in(i)(7);
     -- convert std_logic_vector signals into integers
-    channels(i) <= to_integer(unsigned(regs_in(i)(6 downto 0))); 
+    channel <= to_integer(unsigned(regs_in(i)(6 downto 0))); 
+	 
+	 dlyin(i) <= raw_in(channel) when rawOrNot = '0' else
+	             prep_in(channel);
+					 
+
   end generate;
   
-  gen_output : for i in 7 downto 0 generate
-    
-    proc_output : process(clk)
-    begin
-      if rising_edge(clk) then
-        if rawOrNot(i) = '0' then
-          output(i) <= raw_in(channels(i));
-        else
-          output(i) <= prep_in(channels(i));
-        end if;
-      end if;
-    end process proc_output;
-        
-  end generate; 
-  data_out <= output;
+   inst_dly: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 8,
+       D_DEPTH   => 3
+     )
+     port map (
+       clk       => clk,
+       en_i      => '1',
+       sig_i     => dlyin,
+       sig_o     => data_out
+     );
+  
+  
     
 end architecture behavioral;

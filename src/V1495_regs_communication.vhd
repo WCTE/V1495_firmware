@@ -289,8 +289,8 @@ begin
        lpm_showahead => "OFF",
        lpm_type => "dcfifo",
        lpm_width => 32,
-       wrsync_delaypipe    => 0,
-       rdsync_delaypipe    => 0,
+       wrsync_delaypipe    => 4,
+       rdsync_delaypipe    => 5,
      
        lpm_widthu => log2ceil(4),
        overflow_checking => "ON",

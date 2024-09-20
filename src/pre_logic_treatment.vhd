@@ -29,26 +29,31 @@ end entity pre_logic_treatment;
 begin
   
   
-    gen_level_1 : for i in div_ceil(n_channels,4)-1 downto 0 generate 	 
-	   proc_pipe : process(clk)
-		begin
-		  if rising_edge(clk) then
-      delays(4*i) <= delay_regs(i)(7 downto 0);
-	   delays(4*i+1) <= delay_regs(i)(15 downto 8);
-      delays(4*i+2) <= delay_regs(i)(23 downto 16);
-      delays(4*i+3) <= delay_regs(i)(31 downto 24);
+    gen_dly_gate_1 : for i in div_ceil(n_channels,4)-1 downto 0 generate 	 
+	   gen_dly_gate_2 : for j in 3 downto 0 generate
+		  signal temp :std_logic_vector(15 downto 0);
+		  begin
+		  
+   inst_dly: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 16,
+       D_DEPTH   => 2
+     )
+     port map (
+       clk       => clk,
+       en_i      => '1',
+       sig_i     => delay_regs(i)(8*(j+1)-1 downto 8*j) & gate_regs(i)(8*(j+1)-1 downto 8*j),
+       sig_o     => temp
+     );
 		
-      gates(4*i) <= gate_regs(i)(7 downto 0);
-	   gates(4*i+1) <= gate_regs(i)(15 downto 8);
-      gates(4*i+2) <= gate_regs(i)(23 downto 16);
-      gates(4*i+3) <= gate_regs(i)(31 downto 24);
-		  end if;
-		end process proc_pipe;
-    end generate; 
+		   delays(4*i+j) <= temp(15 downto 8);
+			gates(4*i+j) <= temp(7 downto 0);
+		
+		end generate gen_dly_gate_2;
+    end generate gen_dly_gate_1; 
 
  
 	gen_pre_logic : for i in n_channels-1 downto 0 generate
-	
 	
 	  inst_pre_logic : entity work.pre_logic 
        port map(
@@ -59,6 +64,6 @@ begin
 	    gate  => gates(i),
        data_out => prepared_signals(i)
        );
-	end generate; 
+	end generate gen_pre_logic; 
   
 end architecture behavioral;

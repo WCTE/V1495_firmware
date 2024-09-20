@@ -234,7 +234,7 @@ begin
       port map(
         clk => clk_125,
         reset => reset_125,
-        count_en => '1',
+        count_en => not spill_veto,
         data_in => A(i),
         count_out => count  
       );
@@ -253,7 +253,7 @@ begin
       port map(
         clk => clk_125,
         reset => reset_125,
-        count_en => '1',
+        count_en => not spill_veto,
         data_in => B(i),
         count_out => count  
       );    
@@ -272,7 +272,7 @@ begin
       port map(
         clk => clk_125,
         reset => reset_125,
-        count_en => '1',
+        count_en => not spill_veto,
         data_in => D(i),
         count_out => count  --pipeline this
       );   
@@ -283,12 +283,18 @@ begin
   end block blk_raw_counters;
    
   -- Move A & B data to clk_125 domain
-  proc_data_pipeline : process(clk_125)
-  begin
-    if rising_edge(clk_125) then
-      allData <= B & A;
-    end if;
-  end process proc_data_pipeline;	
+     inst_dly: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 64,
+       D_DEPTH   => 2  
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => B & A,
+       sig_o     => allData
+     );
+  
 	
   
   -- Pre logic treatment of raw inputs
@@ -344,7 +350,8 @@ begin
       logic_type => REG_RW(ARW_LOGIC_TYPE)(i),
       prescale => REG_RW(ARW_POST_L1_PRESCALE(i))(7 downto 0),
       invert => REG_RW(ARW_BINV_L1(i)) & REG_RW(ARW_AINV_L1(i)),
-      
+		count_en_i => not spill_veto,    
+		
       result => level1_result(i),
       count =>count     
     );
@@ -395,6 +402,8 @@ begin
   -- Level 2 inputs are the pre-logic treated raw input signals and level 1 results
   level2_input <= prepared_signals_l1 & prepared_signals;
 
+  
+
   gen_logic_level_2 : for i in N_LEVEL2-1 downto 0 generate
     signal result : std_logic;
     signal count : std_logic_vector(COUNT_WIDTH_LOGIC-1 downto 0);
@@ -415,6 +424,7 @@ begin
       data_in => level2_input,
       logic_type => REG_RW(ARW_LOGIC_TYPE + N_LEVEL1)(i),
       invert => REG_RW(ARW_L1INV_L2(i))(N_LEVEL1 -1  downto 0) & REG_RW(ARW_BINV_L2(i)) & REG_RW(ARW_AINV_L2(i)),
+		count_en_i => not spill_veto,
       
       result => result,
       count => count
@@ -519,7 +529,7 @@ begin
       deadtime_width => REG_RW(ARW_DEADTIME)
     );
 	 
-    F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' else
+    F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
                                  '0';
 								
   end block blk_lemo_output_F;
@@ -567,29 +577,28 @@ begin
       deadtime_width => REG_RW(ARW_DEADTIME)
     );
 	 
-    E_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' else
+    E_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
                                  '0';
 								
   end block blk_lemo_output_E;
   
   
   
-  
-  
-  
-  
   -- Generate veto based on a start signal and an end signal
   blk_spill_veto : block
-    signal spill_veto_start : std_logic;
-    signal spill_veto_end : std_logic;	 
+    signal end_of_spill : std_logic;
+    signal pre_spill : std_logic;	 
+	 signal spill_veto_enable :std_logic;
   begin
-    spill_veto_start <= allData(to_integer(unsigned(REG_RW(ARW_PRESPILL)(6 downto 0))));
-    spill_veto_end <= allData(to_integer(unsigned(REG_RW(ARW_ENDSPILL)(6 downto 0))));
+    pre_spill <= allData(to_integer(unsigned(REG_RW(ARW_SPILL)(7 downto 0))));
+    end_of_spill <= allData(to_integer(unsigned(REG_RW(ARW_SPILL)(15 downto 8))));
+	 spill_veto_enable <= REG_RW(ARW_SPILL)(16);
 	 
     inst_spill_veto: work.veto
     port map(
-      start_i => spill_veto_end,
-      end_i   => spill_veto_start,
+      start_i => end_of_spill,
+      end_i   => pre_spill,
+		veto_en => spill_veto_enable,
       veto_o  => spill_veto
     );  
   end block blk_spill_veto;

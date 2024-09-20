@@ -18,7 +18,7 @@ package V1495_regs IS
   type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
   
   -- The latest git SHA, updated at compile time
-  constant GIT_SHA : std_logic_vector(31 downto 0) := x"09ec59f6";
+  constant GIT_SHA : std_logic_vector(31 downto 0) := x"077e8be3";
 
   -- The number of read only registers
   constant numRregs :  integer := 114;
@@ -76,8 +76,7 @@ package V1495_regs IS
   
   constant ARW_POST_L1_PRESCALE : t_int_v(0 to 9) := GenIntegerList(100, 10); -- Prescale factor applied after Level 1 logic
   
-  constant ARW_PRESPILL : integer := 111; -- Set to channel used for pre-spill signal
-  constant ARW_ENDSPILL : integer := 112; -- Set to channel used for end of spill signal
+  constant ARW_SPILL : integer := 111; -- Set to channel used for pre-spill, end-of-spill, and spill veto signal
   
   constant ARW_DEADTIME : integer := 134; -- Length of deadtime after trigger output on lemo(0)
 

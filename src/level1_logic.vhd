@@ -25,6 +25,8 @@ entity level1_logic is
     invert : in std_logic_vector(N_CHANNELS-1 downto 0);
     -- Prescale output by this factor
     prescale : in std_logic_vector(7 downto 0);
+	 -- Counter enable
+	 count_en_i : in std_logic;
     -- result of this logic unit
     result : out std_logic;
     -- counts number of times logic result is true
@@ -78,7 +80,7 @@ begin
    port map(
      clk => clk,
      reset => reset,
-     count_en => '1',
+     count_en => count_en_i,
      data_in => result_s,
      count_out => count_s  --pipeline this
    );   

@@ -297,12 +297,14 @@ In this case, after a trigger is sent out on LEMO 0, any other trigger on the sa
 ### Spill veto
 
 During the spill veto, all the counters will be frozen and any triggers will be blocked.
-Two registers are used to setup the spill veto:
- - Register `0x30e0` is set the signal connected to the end of spill signal
- - Register `0x30de` is set the signal connected to the pre-spill signal
+The register at `0x30de` is used to setup the spill veto:
+ - Bits [7:0] is the channel connected to the pre-spill signal
+ - Bits [15:0] is the channel connected to the end-of-spill signal
+ - Bit [16] is the veto enable
 
 Possible values for these are 0-63, or any of the signals coming into the A or B ports.
 0-31 corresponds to `A0`-`A31`, 32-63 corresponds to `B0`-`B31`
 
-The veto will start when the end of spill signal is asserted, and end when the pre-spill signal is asserted
+If the veto enable is set to `1`, the veto will start when the end of spill signal is asserted, and end when the pre-spill signal is asserted
 
+If the veto enable is set to `0`, the veto will not be applied at any time.

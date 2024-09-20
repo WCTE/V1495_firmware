@@ -324,18 +324,17 @@ f.write("For example, setting this register to 0x271 (625 in decimal) will set t
 f.write("In this case, after a trigger is sent out on LEMO 0, any other trigger on the same LEMO will be ignored for 625x8 ns = 5us\n")
 
 f.write("### Spill veto\n\n")
-endSpill = READWRITE.pop('ARW_ENDSPILL')
-preSpill = READWRITE.pop('ARW_PRESPILL')
+Spill = READWRITE.pop('ARW_SPILL')
 f.write("During the spill veto, all the counters will be frozen and any triggers will be blocked.\n")
-f.write("Two registers are used to setup the spill veto:\n")
-f.write(" - Register `"+hex(endSpill['addresses'][0])+"` is set the signal connected to the end of spill signal\n")
-f.write(" - Register `"+hex(preSpill['addresses'][0])+"` is set the signal connected to the pre-spill signal\n\n")
-
+f.write("The register at `"+hex(Spill['addresses'][0])+"` is used to setup the spill veto:\n")
+f.write(" - Bits [7:0] is the channel connected to the pre-spill signal\n")
+f.write(" - Bits [15:0] is the channel connected to the end-of-spill signal\n")
+f.write(" - Bit [16] is the veto enable\n\n")
 f.write("Possible values for these are 0-63, or any of the signals coming into the A or B ports.\n")
 f.write("0-31 corresponds to `A0`-`A31`, 32-63 corresponds to `B0`-`B31`\n\n")
 
-f.write("The veto will start when the end of spill signal is asserted, and end when the pre-spill signal is asserted\n\n")
-
+f.write("If the veto enable is set to `1`, the veto will start when the end of spill signal is asserted, and end when the pre-spill signal is asserted\n\n")
+f.write("If the veto enable is set to `0`, the veto will not be applied at any time.\n")
 
 
 

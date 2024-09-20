@@ -23,6 +23,8 @@ entity level2_logic is
     logic_type : in std_logic;
     -- Invert signals
     invert : in std_logic_vector(N_CHANNELS-1 downto 0);
+	 -- Counter enable
+	 count_en_i : in std_logic;
     -- result of this logic unit
     result : out std_logic;
     -- counts number of times logic result is true
@@ -71,7 +73,7 @@ architecture behavioral of level2_logic is
       port map(
         clk => clk,
         reset => reset,
-        count_en => '1',
+        count_en => count_en_i,
         data_in => logic_type,
         count_out => count_s
       );   

@@ -112,8 +112,8 @@ architecture behavioral of delay_chain is
 
   --! @brief Prevent large hyperpipes from going into memory-based altshift_taps,
   --! since that won't take advantage of Hyper-Registers
- -- attribute altera_attribute of delay_reg :
-  --  signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION off";
+  attribute altera_attribute of delay_reg :
+    signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION off";
 
 begin
 
