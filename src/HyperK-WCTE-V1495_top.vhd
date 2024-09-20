@@ -450,8 +450,9 @@ begin
 	   
   end generate gen_logic_level_2;
 
-  gen_pll : if useExternalClk generate
   
+  -- 125 MHz clock generation
+  gen_pll : if useExternalClk generate  
     ------------------------------------------------
     -- PLL to generate 125 MHz clock from 62.5 MHz input on GIN(0)
     inst_pll : entity work.ALTERA_CMN_PLL
@@ -485,18 +486,19 @@ begin
 
   
 
-  -- Lemo output on port F
-  blk_lemo_output_F : block
-    -- Mapping of D ports to lemo ports (from V1495 manual)
+  -- Lemo output on ports E&F
+  blk_lemo_output : block
+    -- Mapping of A395D ports to lemo ports (from V1495 manual)
     constant A395D_Mapping : t_int_v(0 to 7) := (0, 16, 1, 17,  12, 28, 13, 29);
-    signal lemo_out : std_logic_vector(7 downto 0);
+    signal lemo_out : std_logic_vector(15 downto 0);
     signal deadTime : std_logic;
   begin
    
     -- Set the output of the lemo connectors to signals based on register settings
     inst_lemo : work.lemo_output
       generic map(
-        n_channels =>  N_LEVEL2+N_LEVEL1+32+N_LOGIC_CHANNELS
+        n_channels =>  N_LEVEL2+N_LEVEL1+32+N_LOGIC_CHANNELS,
+		  n_outputs => 16
       )
       port map (
         clk => clk_125,
@@ -511,13 +513,25 @@ begin
         regs_in(5) => REG_RW(ARW_F(5)),
         regs_in(6) => REG_RW(ARW_F(6)),
         regs_in(7) => REG_RW(ARW_F(7)),
+		  
+		  
+        regs_in(8) => REG_RW(ARW_E(0)),
+        regs_in(9) => REG_RW(ARW_E(1)),
+        regs_in(10) => REG_RW(ARW_E(2)),
+        regs_in(11) => REG_RW(ARW_E(3)),
+        regs_in(12) => REG_RW(ARW_E(4)),
+        regs_in(13) => REG_RW(ARW_E(5)),
+        regs_in(14) => REG_RW(ARW_E(6)),
+        regs_in(15) => REG_RW(ARW_E(7)),
         data_out => lemo_out
       );
  
     -- Map outputs of lemo_output to the actuall lemo connectors
     gen_lemo_out : for i in 7 downto 1 generate
-      F_Expan(A395D_Mapping(i)) <= lemo_out(i);  
+      F_Expan(A395D_Mapping(i)) <= lemo_out(i); 
+	   E_Expan(A395D_Mapping(i)) <= lemo_out(i+8); 	
     end generate;
+	 E_Expan(A395D_Mapping(0)) <= lemo_out(8);
 	 
     -- Generate deadtime after trigger on lemo #0
     inst_deadtime : entity work.trigger_deadtime
@@ -532,57 +546,7 @@ begin
     F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
                                  '0';
 								
-  end block blk_lemo_output_F;
-  
-    blk_lemo_output_E : block
-    -- Mapping of D ports to lemo ports (from V1495 manual)
-    constant A395D_Mapping : t_int_v(0 to 7) := (0, 16, 1, 17,  12, 28, 13, 29);
-    signal lemo_out : std_logic_vector(7 downto 0);
-    signal deadTime : std_logic;
-  begin
-   
-    -- Set the output of the lemo connectors to signals based on register settings
-    inst_lemo : work.lemo_output
-      generic map(
-        n_channels =>  N_LEVEL2+N_LEVEL1+32+N_LOGIC_CHANNELS
-      )
-      port map (
-        clk => clk_125,
-        reset => reset_125,
-        raw_in =>  level2_result &            level1_result &           D & allData,
-        prep_in => level2_result_edge & prepared_signals_l1 & x"00000000" & prepared_signals,
-        regs_in(0) => REG_RW(ARW_E(0)),
-        regs_in(1) => REG_RW(ARW_E(1)),
-        regs_in(2) => REG_RW(ARW_E(2)),
-        regs_in(3) => REG_RW(ARW_E(3)),
-        regs_in(4) => REG_RW(ARW_E(4)),
-        regs_in(5) => REG_RW(ARW_E(5)),
-        regs_in(6) => REG_RW(ARW_E(6)),
-        regs_in(7) => REG_RW(ARW_E(7)),
-        data_out => lemo_out
-      );
- 
-    -- Map outputs of lemo_output to the actuall lemo connectors
-    gen_lemo_out : for i in 7 downto 1 generate
-      E_Expan(A395D_Mapping(i)) <= lemo_out(i);  
-    end generate;
-	 
-    -- Generate deadtime after trigger on lemo #0
-    inst_deadtime : entity work.trigger_deadtime
-    port map(
-      clk => clk_125,
-      reset => reset_125,
-      data_in => lemo_out(0),
-      data_out => deadTime,
-      deadtime_width => REG_RW(ARW_DEADTIME)
-    );
-	 
-    E_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
-                                 '0';
-								
-  end block blk_lemo_output_E;
-  
-  
+  end block blk_lemo_output;
   
   -- Generate veto based on a start signal and an end signal
   blk_spill_veto : block

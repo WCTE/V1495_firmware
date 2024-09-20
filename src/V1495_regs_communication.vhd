@@ -261,7 +261,7 @@ begin
    inst_dly: entity work.delay_chain
      generic map (
        W_WIDTH  => 13,
-       D_DEPTH   => 4
+       D_DEPTH   => 3
      )
      port map (
        clk       => clk_data,
@@ -279,6 +279,11 @@ begin
 	
    wr_data <= REG_RW(index_int) when RW_check_dly = '1' else
 	           REG_R(index_int);
+				  
+--	wr_en_dly <= wr_en			  
+--	index_int <= to_integer(unsigned(index));			  
+--	wr_data <= REG_RW(index_int) when RW_check = '1' else
+--	           REG_R(index_int);			  
   
    dcfifo_component : dcfifo
      GENERIC MAP (

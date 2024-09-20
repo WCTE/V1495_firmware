@@ -31,23 +31,23 @@ begin
   
     gen_dly_gate_1 : for i in div_ceil(n_channels,4)-1 downto 0 generate 	 
 	   gen_dly_gate_2 : for j in 3 downto 0 generate
-		  signal temp :std_logic_vector(15 downto 0);
-		  begin
+		--  signal temp :std_logic_vector(15 downto 0);
+		--  begin
 		  
-   inst_dly: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 16,
-       D_DEPTH   => 2
-     )
-     port map (
-       clk       => clk,
-       en_i      => '1',
-       sig_i     => delay_regs(i)(8*(j+1)-1 downto 8*j) & gate_regs(i)(8*(j+1)-1 downto 8*j),
-       sig_o     => temp
-     );
+--   inst_dly: entity work.delay_chain
+--     generic map (
+--       W_WIDTH  => 16,
+--       D_DEPTH   => 2
+--     )
+--     port map (
+--       clk       => clk,
+--       en_i      => '1',
+--       sig_i     => delay_regs(i)(8*(j+1)-1 downto 8*j) & gate_regs(i)(8*(j+1)-1 downto 8*j),
+--       sig_o     => temp
+--     );
 		
-		   delays(4*i+j) <= temp(15 downto 8);
-			gates(4*i+j) <= temp(7 downto 0);
+		   delays(4*i+j) <= delay_regs(i)(8*(j+1)-1 downto 8*j);--temp(15 downto 8);
+			gates(4*i+j) <= gate_regs(i)(8*(j+1)-1 downto 8*j);--temp(7 downto 0);
 		
 		end generate gen_dly_gate_2;
     end generate gen_dly_gate_1; 
