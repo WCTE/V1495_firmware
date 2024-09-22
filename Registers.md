@@ -264,8 +264,8 @@ The LEMO ports on the mezzanine cards can be set to output any of the signals or
  -    0-31: `A` inputs
  -   32-63: `B` inputs
  -   64-95: `D` inputs
- -  96-106: `L1` outputs
- - 107-110: `L2` outputs
+ -  96-105: `L1` outputs
+ - 106-109: `L2` outputs
 
 Bit 8 switches between raw and and delay/gate applied.
 If bit 8 is `1`, then the output will be the requested signal with delay and gate applied
