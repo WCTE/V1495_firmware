@@ -295,7 +295,7 @@ begin
        lpm_type => "dcfifo",
        lpm_width => 32,
        wrsync_delaypipe    => 4,
-       rdsync_delaypipe    => 5,
+       rdsync_delaypipe    => 8,
      
        lpm_widthu => log2ceil(4),
        overflow_checking => "ON",
