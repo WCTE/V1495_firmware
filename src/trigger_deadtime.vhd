@@ -22,17 +22,17 @@ architecture behavioral of trigger_deadtime is
 
 begin
 
-   inst_dly: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 32,
-       D_DEPTH   => 1
-     )
-     port map (
-       clk       => clk,
-       en_i      => '1',
-       sig_i     => deadtime_width,
-       sig_o     => deadtime_width_s
-	  );
+--   inst_dly: entity work.delay_chain
+--     generic map (
+--       W_WIDTH  => 32,
+--       D_DEPTH   => 1
+--     )
+--     port map (
+--       clk       => clk,
+--       en_i      => '1',
+--       sig_i     => deadtime_width,
+--       sig_o     => deadtime_width_s
+--	  );
 
 
   proc_deadtime : process(clk)
@@ -59,7 +59,7 @@ begin
 
 
           when COUNTING =>
-            if counter > to_integer(unsigned(deadtime_width_s)) then
+            if counter >= to_integer(unsigned(deadtime_width)) then
               counter := 0;
               data_out <= '0';
               deadtime_state <= IDLE;

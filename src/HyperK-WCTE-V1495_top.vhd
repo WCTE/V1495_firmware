@@ -131,17 +131,26 @@ architecture rtl of HyperK_WCTE_V1495_top is
 
   -- Raw data for logic elements   
   signal allData : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
+  signal allData_dly1 : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
+  signal allData_dly2 : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
     
   -- 125MHz clock derived from GIN(0)
   signal clk_125 : std_logic;
   
   -- Channel A & B data after pre-logic treatment
   signal prepared_signals : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
+  -- Channel A & B delayed by 1 clock tick to match timing of L1 output
+  signal prepared_signals_dly_1 : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
+  -- Channel A & B delayed by 2 clock ticks to match timing of L1 output
+  signal prepared_signals_dly_2 : std_logic_vector(N_LOGIC_CHANNELS-1 downto 0);
   -- Level 1 logic outputs after pre-logic treatment
   signal prepared_signals_l1 : std_logic_vector(N_LEVEL1-1 downto 0);
+  -- Level 1 logic outputs delayed by 1 clock tick to match timing of L2 output
+  signal prepared_signals_l1_dly1: std_logic_vector(N_LEVEL1-1 downto 0);
   
   -- Results of level 1 logic units
   signal level1_result : std_logic_vector(N_LEVEL1-1 downto 0);
+  signal level1_result_dly : std_logic_vector(N_LEVEL1-1 downto 0);
   -- Input to level 2 logic
   signal level2_input  : std_logic_vector(N_LOGIC_CHANNELS+N_LEVEL1-1 downto 0);
   
@@ -283,7 +292,7 @@ begin
   end block blk_raw_counters;
    
   -- Move A & B data to clk_125 domain
-     inst_dly: entity work.delay_chain
+     inst_dly_all: entity work.delay_chain
      generic map (
        W_WIDTH  => 64,
        D_DEPTH   => 2  
@@ -294,9 +303,8 @@ begin
        sig_i     => B & A,
        sig_o     => allData
      );
-  
-	
-  
+	  
+ 
   -- Pre logic treatment of raw inputs
   blk_pre_logic : block
     signal delay_regs : reg_data(15 downto 0);
@@ -395,12 +403,20 @@ begin
   
   end block blk_pre_logic_level1;
   
-
+  -- Delay the raw inputs by one tick to match timing of l1 outputs
+--  proc_dly_raw_signals : process(clk_125)
+--  begin
+--    if rising_edge(clk_125) then
+--	   prepared_signals_dly_1 <= prepared_signals;
+--		allData_dly1 <= allData;
+--    end if;
+--  end process proc_dly_raw_signals;
+  
   
   --LEVEL-2-LOGIC---------------------------------------------------
   
   -- Level 2 inputs are the pre-logic treated raw input signals and level 1 results
-  level2_input <= prepared_signals_l1 & prepared_signals;
+  level2_input <= prepared_signals_l1 & prepared_signals_dly_1;
 
   
 
@@ -449,6 +465,18 @@ begin
    level2_result_edge(i) <= not in_dly and result;
 	   
   end generate gen_logic_level_2;
+  
+    -- Delay the raw inputs and l1 outputs by one tick to match timing of l2 outputs
+--  proc_dly_raw_signals2 : process(clk_125)
+--  begin
+--    if rising_edge(clk_125) then
+--	   prepared_signals_dly_2 <= prepared_signals_dly_1;
+--		prepared_signals_l1_dly_1 <= prepared_signals_l1;
+--		allData_dly2 <= allData_dly1;
+--		level1_result_dly <= level1_result;
+--    end if;
+--  end process proc_dly_raw_signals2;
+  
 
   
   -- 125 MHz clock generation
@@ -483,9 +511,84 @@ begin
       locked     => open
     );
   end generate;
+  
+  blk_dly : block
+  begin
+    inst_dly_all_out: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 64,
+       D_DEPTH   => 3  
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => allData,
+       sig_o     => allData_dly1
+     );
+	      
+	inst_dly_all_prep: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 64,
+       D_DEPTH   => 3  
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => prepared_signals,
+       sig_o     => prepared_signals_dly_1
+     ); 
+	  
+	 inst_dly_all_out2: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 64,
+       D_DEPTH   => 2
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => allData_dly1,
+       sig_o     => allData_dly2
+     );
+	      
+	inst_dly_all_prep2: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 64,
+       D_DEPTH   => 2  
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => prepared_signals_dly_1,
+       sig_o     => prepared_signals_dly_2
+     ); 
+  
+  	inst_dly_l1: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 10,
+       D_DEPTH   => 2  
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => prepared_signals_l1,
+       sig_o     => prepared_signals_l1_dly1
+     ); 
+  
+  
+   inst_dly_l1_r: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 10,
+       D_DEPTH   => 2  
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i     => level1_result,
+       sig_o     => level1_result_dly
+     ); 
+  end block blk_dly;	  
 
   
-
   -- Lemo output on ports E&F
   blk_lemo_output : block
     -- Mapping of A395D ports to lemo ports (from V1495 manual)
@@ -503,8 +606,10 @@ begin
       port map (
         clk => clk_125,
         reset => reset_125,
-        raw_in =>  level2_result &            level1_result &           D & allData,
-        prep_in => level2_result_edge & prepared_signals_l1 & x"00000000" & prepared_signals,
+        --raw_in =>  level2_result &              level1_result_dly &           D & allData_dly2,       
+        --prep_in => level2_result_edge & prepared_signals_l1_dly_1 & x"00000000" & prepared_signals_dly_2,  
+        raw_in =>  level2_result &             level1_result_dly &           D & allData_dly2,       
+        prep_in => level2_result_edge & prepared_signals_l1_dly1 & x"00000000" & prepared_signals_dly_2,  
         regs_in(0) => REG_RW(ARW_F(0)),
         regs_in(1) => REG_RW(ARW_F(1)),
         regs_in(2) => REG_RW(ARW_F(2)),
@@ -543,8 +648,21 @@ begin
       deadtime_width => REG_RW(ARW_DEADTIME)
     );
 	 
-    F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
-                                 '0';
+	 
+	 proc_lemo0 : process(clk_125)
+	 begin
+	   if rising_edge(clk_125) then
+		  if deadtime = '0' and spill_veto = '0' then
+		    F_Expan(A395D_Mapping(0)) <= lemo_out(0);
+		  else 
+		    F_Expan(A395D_Mapping(0)) <= '0';
+		  end if;
+		end if;
+	 end process proc_lemo0;
+		  
+		  
+    --F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
+    --                             '0';
 								
   end block blk_lemo_output;
   

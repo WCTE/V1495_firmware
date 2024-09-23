@@ -18,7 +18,7 @@ package V1495_regs IS
   type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
   
   -- The latest git SHA, updated at compile time
-  constant GIT_SHA : std_logic_vector(31 downto 0) := x"05ac536a";
+  constant GIT_SHA : std_logic_vector(31 downto 0) := x"0cc35e18";
 
   -- The number of read only registers
   constant numRregs :  integer := 114;
