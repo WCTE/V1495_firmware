@@ -201,7 +201,10 @@ The masks for input into `L2` are:
 
 Signals going into a logic can be inverted.
 For example, register `0x30fa` inverts the signals going into logic level 1 from the B input port.
-Setting this to `0x8a210000` (`0b1000-1010-0010-0001-0000-0000-0000-0000`) will invert channels 16, 21, 25, 27, and 31, leaving the other channels un-inverted.
+Setting this to `0x8a210000` (`0b1000-1010-0010-0001-0000-0000-0000-0000`) will invert channels 16, 21, 25, 27, and 31 for L1[2], leaving the other channels un-inverted.
+
+**NOTE**: Inversion is set for each logic unit seperately. Setting `0x30fa` to `0x8a210000` will **only** affect L1[2].
+The same signals going into other logic units will not be inverted.
 ### Inverting inputs to Level 1 logic
 
 The registers to invert input into `L1` are:

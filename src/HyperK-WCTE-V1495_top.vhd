@@ -438,7 +438,7 @@ begin
       reset => reset_125,
       mask => REG_RW(ARW_L1MASK_L2(i))(N_LEVEL1-1 downto 0) & REG_RW(ARW_BMASK_L2(i)) & REG_RW(ARW_AMASK_L2(i)),
       data_in => level2_input,
-      logic_type => REG_RW(ARW_LOGIC_TYPE + N_LEVEL1)(i),
+      logic_type => REG_RW(ARW_LOGIC_TYPE)(i + N_LEVEL1),
       invert => REG_RW(ARW_L1INV_L2(i))(N_LEVEL1 -1  downto 0) & REG_RW(ARW_BINV_L2(i)) & REG_RW(ARW_AINV_L2(i)),
 		count_en_i => not spill_veto,
       

@@ -226,7 +226,10 @@ inv = dict((k, READWRITE.pop(k)) for k in wanted_keys if k in READWRITE)
 f.write("Signals going into a logic can be inverted.\n")
 n=2
 f.write("For example, register `"+hex(inv['ARW_BINV_L1']['addresses'][n])+"` inverts the signals going into logic level 1 from the B input port.\n")
-f.write("Setting this to `0x8a210000` (`0b1000-1010-0010-0001-0000-0000-0000-0000`) will invert channels 16, 21, 25, 27, and 31, leaving the other channels un-inverted.\n")
+f.write("Setting this to `0x8a210000` (`0b1000-1010-0010-0001-0000-0000-0000-0000`) will invert channels 16, 21, 25, 27, and 31 for L1[2], leaving the other channels un-inverted.\n\n")
+f.write("**NOTE**: Inversion is set for each logic unit seperately. Setting `"+hex(inv['ARW_BINV_L1']['addresses'][n])+"` to `0x8a210000` will **only** affect L1[2].\n")
+f.write("The same signals going into other logic units will not be inverted.\n")
+
 
 f.write("### Inverting inputs to Level 1 logic\n\n")
 
