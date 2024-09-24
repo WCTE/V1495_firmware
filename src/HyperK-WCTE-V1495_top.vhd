@@ -295,7 +295,7 @@ begin
      inst_dly_all: entity work.delay_chain
      generic map (
        W_WIDTH  => 64,
-       D_DEPTH   => 2  
+       D_DEPTH   => 1  
      )
      port map (
        clk       => clk_125,
@@ -403,22 +403,7 @@ begin
   
   end block blk_pre_logic_level1;
   
-  -- Delay the raw inputs by one tick to match timing of l1 outputs
---  proc_dly_raw_signals : process(clk_125)
---  begin
---    if rising_edge(clk_125) then
---	   prepared_signals_dly_1 <= prepared_signals;
---		allData_dly1 <= allData;
---    end if;
---  end process proc_dly_raw_signals;
-  
-  
-  --LEVEL-2-LOGIC---------------------------------------------------
-  
-  -- Level 2 inputs are the pre-logic treated raw input signals and level 1 results
   level2_input <= prepared_signals_l1 & prepared_signals_dly_1;
-
-  
 
   gen_logic_level_2 : for i in N_LEVEL2-1 downto 0 generate
     signal result : std_logic;
@@ -465,18 +450,6 @@ begin
    level2_result_edge(i) <= not in_dly and result;
 	   
   end generate gen_logic_level_2;
-  
-    -- Delay the raw inputs and l1 outputs by one tick to match timing of l2 outputs
---  proc_dly_raw_signals2 : process(clk_125)
---  begin
---    if rising_edge(clk_125) then
---	   prepared_signals_dly_2 <= prepared_signals_dly_1;
---		prepared_signals_l1_dly_1 <= prepared_signals_l1;
---		allData_dly2 <= allData_dly1;
---		level1_result_dly <= level1_result;
---    end if;
---  end process proc_dly_raw_signals2;
-  
 
   
   -- 125 MHz clock generation

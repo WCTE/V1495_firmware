@@ -23,6 +23,10 @@ All of the trigger logic is driven by this 125 MHz clock
 
 The register communication is driven by an internal 40 MHz clock on the V1495.
 
+## Latency
+
+The data latency is discussed in detail in the [Latency document](./Latency.md).
+
 ## Data flow
 
 ### Raw data input

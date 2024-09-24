@@ -39,15 +39,15 @@ begin
         result <= '0';
       else
         if type_i = '0' then  -- And logic is applied
-          -- result is an and of all bits of masked data
-          result <= and_reduct(maskedData);
           -- Sets all disabled channels to '1' so they don't affect the 'and'
           maskedData <= data_in or not mask;  			
+          -- result is an and of all bits of masked data
+          result <= and_reduct(maskedData);
         elsif type_i = '1' then -- Or logic is applied
-          -- result is an or of all bits of masked data
-          result <= or_reduct(maskedData);
           -- Sets all disabled channels to '0' so they don't affect the 'or'
           maskedData <= data_in and mask;		
+          -- result is an or of all bits of masked data
+          result <= or_reduct(maskedData);
         end if;	 
         
       end if;	  
