@@ -86,7 +86,7 @@ begin
    );   
 
   -- Instance of prescale
-  inst_prescale : work.prescale
+  inst_prescale : entity work.prescale
     port map(
       clk => clk,
       prescale_value => prescale_s,

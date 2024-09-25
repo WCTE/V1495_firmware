@@ -72,42 +72,42 @@ begin
     variable counter : integer range 0 to 255;
   begin
     if rising_edge(clk) then
-	   if reset = '1' then
-		  counter := 0;
-		  delay_state <= IDLE;
-		  dly <= '0';
-		else
+      if reset = '1' then
+        counter := 0;
+        delay_state <= IDLE;
+        dly <= '0';
+      else
 	 
-	     case delay_state is
-	       
-			 when IDLE =>
-				dly <= '0';
-			   if edge = '1' then
-				  if delay_integer = 1 then
-				    dly <= '1';
-				  else				
-				    delay_state <= WAITING;				 
-				    counter := counter + 1;
-				  end if;
-				else
-				  delay_state <= IDLE;
-				  counter := 0;
-				end if;
-			 
-			 when WAITING =>
-			   if counter = delay_integer-1 then
-				  counter := 0;
-				  dly <= '1';
-				  delay_state <= IDLE;
-				else 
-				  counter := counter + 1;
-				  delay_state <= WAITING;
-				  dly <= '0';
-				end if;
-				
-		  end case;
-	   end if;			
-	 end if;
+        case delay_state is
+          
+          when IDLE =>
+            dly <= '0';
+            if edge = '1' then
+              if delay_integer = 1 then
+                dly <= '1';
+              else				
+                delay_state <= WAITING;				 
+                counter := counter + 1;
+              end if;
+            else
+              delay_state <= IDLE;
+              counter := 0;
+            end if;
+            
+          when WAITING =>
+            if counter >= delay_integer-1 then
+              counter := 0;
+              dly <= '1';
+              delay_state <= IDLE;
+            else 
+              counter := counter + 1;
+              delay_state <= WAITING;
+              dly <= '0';
+            end if;
+            
+        end case;
+      end if;			
+    end if;
   end process proc_delay;
   
   delayed_signal <= edge when delay_integer = 0 else

@@ -58,7 +58,8 @@ architecture rtl of V1495_regs_communication is
   
   signal read_reg_data : std_logic_vector(31 downto 0);
   signal read_reg_data_en : std_logic;
-  
+
+  signal LBRES : std_logic;
   
   COMPONENT dcfifo
     GENERIC (
@@ -96,7 +97,8 @@ architecture rtl of V1495_regs_communication is
 begin
 
   LAD	<= LADout when LADoe = '1' else (others => 'Z');
-	
+
+  LBRES <= not nLBRES;
   -- Local bus FSM
   process(LCLK, nLBRES)
     variable rreg, wreg   : std_logic_vector( 31 downto 0);
@@ -222,6 +224,8 @@ begin
     signal dly_out : std_logic_vector(12 downto 0);	
     signal index_int : integer;
     signal RW_check_dly : std_logic;
+
+    signal sig_i : std_logic_vector(12 downto 0);
   
   begin
   
@@ -256,7 +260,7 @@ begin
      end if;
    end process proc_Fifo_control;
 	
-	
+   sig_i <= RW_check & wr_en & index;
 	
    inst_dly: entity work.delay_chain
      generic map (
@@ -266,7 +270,7 @@ begin
      port map (
        clk       => clk_data,
        en_i      => '1',
-       sig_i     => RW_check & wr_en & index,
+       sig_i     => sig_i,
        sig_o     => dly_out
      );
 	
@@ -305,7 +309,7 @@ begin
        use_eab => "ON"
      )
      PORT MAP (
-       aclr => not nLBRES,
+       aclr => LBRES,
        rdclk => LCLK,
        wrclk => clk_data,
        wrreq => wr_en_dly,
@@ -429,7 +433,7 @@ begin
         use_eab => "ON"
       )
       PORT MAP (
-        aclr => not nLBRES,
+        aclr => LBRES,
         rdclk => clk_data,
         wrclk => LCLK,
         wrreq => wr_en,

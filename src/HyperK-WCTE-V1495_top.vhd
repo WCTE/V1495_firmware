@@ -292,17 +292,17 @@ begin
   end block blk_raw_counters;
    
   -- Move A & B data to clk_125 domain
-     inst_dly_all: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 64,
-       D_DEPTH   => 1  
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => B & A,
-       sig_o     => allData
-     );
+  inst_dly_all: entity work.delay_chain
+  generic map (
+    W_WIDTH  => 64,
+    D_DEPTH   => 1  
+  )
+  port map (
+    clk       => clk_125,
+    en_i      => '1',
+    sig_i     => B & A,
+    sig_o     => allData
+  );
 	  
  
   -- Pre logic treatment of raw inputs
@@ -322,7 +322,7 @@ begin
       gate_regs(i)  <= REG_RW(ARW_GATE_PRE(i));
     end generate gen_gate;  
   
-    inst_pre_logic: work.pre_logic_treatment
+    inst_pre_logic: entity work.pre_logic_treatment
     generic map(
       n_channels => N_LOGIC_CHANNELS
     )
@@ -345,10 +345,10 @@ begin
     signal count : std_logic_vector(COUNT_WIDTH_LOGIC-1 downto 0);
   begin
     -- Level 1 logic unit
-    inst_l1_logic : work.level1_logic
+    inst_l1_logic : entity work.level1_logic
     generic map (
       N_CHANNELS => N_LOGIC_CHANNELS,
-	   COUNTER_WIDTH => COUNT_WIDTH_LOGIC
+      COUNTER_WIDTH => COUNT_WIDTH_LOGIC
     )
     port map(
       clk => clk_125,
@@ -358,7 +358,7 @@ begin
       logic_type => REG_RW(ARW_LOGIC_TYPE)(i),
       prescale => REG_RW(ARW_POST_L1_PRESCALE(i))(7 downto 0),
       invert => REG_RW(ARW_BINV_L1(i)) & REG_RW(ARW_AINV_L1(i)),
-		count_en_i => not spill_veto,    
+      count_en_i => not spill_veto,    
 		
       result => level1_result(i),
       count =>count     
@@ -387,7 +387,7 @@ begin
     end generate gen_gate;  
 	 
 	  
-    inst_pre_logic: work. pre_logic_treatment
+    inst_pre_logic: entity work. pre_logic_treatment
     generic map(
       n_channels => N_LEVEL1
     )
@@ -413,7 +413,7 @@ begin
   begin  
   
     -- level 2 logic unit
-    inst_l2_logic : work.level2_logic
+    inst_l2_logic : entity work.level2_logic
     generic map(
       N_CHANNELS => N_LEVEL1+N_LOGIC_CHANNELS,
       COUNTER_WIDTH => COUNT_WIDTH_LOGIC
@@ -425,7 +425,7 @@ begin
       data_in => level2_input,
       logic_type => REG_RW(ARW_LOGIC_TYPE)(i + N_LEVEL1),
       invert => REG_RW(ARW_L1INV_L2(i))(N_LEVEL1 -1  downto 0) & REG_RW(ARW_BINV_L2(i)) & REG_RW(ARW_AINV_L2(i)),
-		count_en_i => not spill_veto,
+      count_en_i => not spill_veto,
       
       result => result,
       count => count
@@ -488,77 +488,77 @@ begin
   blk_dly : block
   begin
     inst_dly_all_out: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 64,
-       D_DEPTH   => 3  
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => allData,
-       sig_o     => allData_dly1
-     );
+    generic map (
+      W_WIDTH  => 64,
+      D_DEPTH   => 3  
+    )
+    port map (
+      clk       => clk_125,
+      en_i      => '1',
+      sig_i     => allData,
+      sig_o     => allData_dly1
+    );
 	      
-	inst_dly_all_prep: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 64,
-       D_DEPTH   => 3  
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => prepared_signals,
-       sig_o     => prepared_signals_dly_1
-     ); 
+    inst_dly_all_prep: entity work.delay_chain
+    generic map (
+      W_WIDTH  => 64,
+      D_DEPTH   => 3  
+    )
+    port map (
+      clk       => clk_125,
+      en_i      => '1',
+      sig_i     => prepared_signals,
+      sig_o     => prepared_signals_dly_1
+    ); 
 	  
-	 inst_dly_all_out2: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 64,
-       D_DEPTH   => 2
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => allData_dly1,
-       sig_o     => allData_dly2
-     );
+    inst_dly_all_out2: entity work.delay_chain
+    generic map (
+      W_WIDTH  => 64,
+      D_DEPTH   => 2
+    )
+    port map (
+      clk       => clk_125,
+      en_i      => '1',
+      sig_i     => allData_dly1,
+      sig_o     => allData_dly2
+    );
 	      
-	inst_dly_all_prep2: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 64,
-       D_DEPTH   => 2  
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => prepared_signals_dly_1,
-       sig_o     => prepared_signals_dly_2
-     ); 
+    inst_dly_all_prep2: entity work.delay_chain
+    generic map (
+      W_WIDTH  => 64,
+      D_DEPTH   => 2  
+    )
+    port map (
+      clk       => clk_125,
+      en_i      => '1',
+      sig_i     => prepared_signals_dly_1,
+      sig_o     => prepared_signals_dly_2
+    ); 
   
-  	inst_dly_l1: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 10,
-       D_DEPTH   => 2  
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => prepared_signals_l1,
-       sig_o     => prepared_signals_l1_dly1
-     ); 
+    inst_dly_l1: entity work.delay_chain
+    generic map (
+      W_WIDTH  => 10,
+      D_DEPTH   => 2  
+    )
+    port map (
+      clk       => clk_125,
+      en_i      => '1',
+      sig_i     => prepared_signals_l1,
+      sig_o     => prepared_signals_l1_dly1
+    ); 
   
   
-   inst_dly_l1_r: entity work.delay_chain
-     generic map (
-       W_WIDTH  => 10,
-       D_DEPTH   => 2  
-     )
-     port map (
-       clk       => clk_125,
-       en_i      => '1',
-       sig_i     => level1_result,
-       sig_o     => level1_result_dly
-     ); 
+    inst_dly_l1_r: entity work.delay_chain
+    generic map (
+      W_WIDTH  => 10,
+      D_DEPTH   => 2  
+    )
+    port map (
+      clk       => clk_125,
+      en_i      => '1',
+      sig_i     => level1_result,
+      sig_o     => level1_result_dly
+    ); 
   end block blk_dly;	  
 
   
@@ -571,16 +571,14 @@ begin
   begin
    
     -- Set the output of the lemo connectors to signals based on register settings
-    inst_lemo : work.lemo_output
+    inst_lemo : entity work.lemo_output
       generic map(
         n_channels =>  N_LEVEL2+N_LEVEL1+32+N_LOGIC_CHANNELS,
-		  n_outputs => 16
+        n_outputs => 16
       )
       port map (
         clk => clk_125,
         reset => reset_125,
-        --raw_in =>  level2_result &              level1_result_dly &           D & allData_dly2,       
-        --prep_in => level2_result_edge & prepared_signals_l1_dly_1 & x"00000000" & prepared_signals_dly_2,  
         raw_in =>  level2_result &             level1_result_dly &           D & allData_dly2,       
         prep_in => level2_result_edge & prepared_signals_l1_dly1 & x"00000000" & prepared_signals_dly_2,  
         regs_in(0) => REG_RW(ARW_F(0)),
@@ -607,9 +605,9 @@ begin
     -- Map outputs of lemo_output to the actuall lemo connectors
     gen_lemo_out : for i in 7 downto 1 generate
       F_Expan(A395D_Mapping(i)) <= lemo_out(i); 
-	   E_Expan(A395D_Mapping(i)) <= lemo_out(i+8); 	
+      E_Expan(A395D_Mapping(i)) <= lemo_out(i+8); 	
     end generate;
-	 E_Expan(A395D_Mapping(0)) <= lemo_out(8);
+    E_Expan(A395D_Mapping(0)) <= lemo_out(8);
 	 
     -- Generate deadtime after trigger on lemo #0
     inst_deadtime : entity work.trigger_deadtime
@@ -620,22 +618,18 @@ begin
       data_out => deadTime,
       deadtime_width => REG_RW(ARW_DEADTIME)
     );
-	 
-	 
-	 proc_lemo0 : process(clk_125)
-	 begin
-	   if rising_edge(clk_125) then
-		  if deadtime = '0' and spill_veto = '0' then
-		    F_Expan(A395D_Mapping(0)) <= lemo_out(0);
-		  else 
-		    F_Expan(A395D_Mapping(0)) <= '0';
-		  end if;
-		end if;
-	 end process proc_lemo0;
-		  
-		  
-    --F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime ='0' and spill_veto = '0' else
-    --                             '0';
+
+    proc_lemo0 : process(clk_125)
+    begin
+      if rising_edge(clk_125) then
+        if deadtime = '0' and spill_veto = '0' then
+          F_Expan(A395D_Mapping(0)) <= lemo_out(0);
+        else 
+          F_Expan(A395D_Mapping(0)) <= '0';
+        end if;
+      end if;
+    end process proc_lemo0;
+    
 								
   end block blk_lemo_output;
   
@@ -647,13 +641,13 @@ begin
   begin
     pre_spill <= allData(to_integer(unsigned(REG_RW(ARW_SPILL)(7 downto 0))));
     end_of_spill <= allData(to_integer(unsigned(REG_RW(ARW_SPILL)(15 downto 8))));
-	 spill_veto_enable <= REG_RW(ARW_SPILL)(16);
+    spill_veto_enable <= REG_RW(ARW_SPILL)(16);
 	 
-    inst_spill_veto: work.veto
+    inst_spill_veto: entity work.veto
     port map(
       start_i => end_of_spill,
       end_i   => pre_spill,
-		veto_en => spill_veto_enable,
+      veto_en => spill_veto_enable,
       veto_o  => spill_veto
     );  
   end block blk_spill_veto;

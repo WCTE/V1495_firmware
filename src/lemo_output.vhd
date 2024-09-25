@@ -3,6 +3,7 @@ use IEEE.std_Logic_1164.all;
 use IEEE.NUMERIC_STD.ALL; 
 use IEEE.std_Logic_unsigned.all;
 use work.V1495_regs.all;
+use work.functions.all;
 
 -- Sets the lemo outputs to the signals specified by registers
 entity lemo_output is
@@ -36,7 +37,7 @@ begin
   
   gen_integers : for i in n_outputs-1 downto 0 generate
     signal rawOrNot : std_logic;
-	 signal channel : integer;
+    signal channel : integer range 0 to n_channels;
 	 
   begin
     -- Check if raw or prescaled channel is requested
@@ -44,8 +45,8 @@ begin
     -- convert std_logic_vector signals into integers
     channel <= to_integer(unsigned(regs_in(i)(6 downto 0))); 
 	 
-	 dlyin(i) <= raw_in(channel) when rawOrNot = '0' else
-	             prep_in(channel);
+    dlyin(i) <= raw_in(channel) when rawOrNot = '0' else
+                prep_in(channel);
 					 
 
   end generate;

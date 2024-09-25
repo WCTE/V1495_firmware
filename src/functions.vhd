@@ -6,7 +6,13 @@ use IEEE.std_Logic_unsigned.all;
 
 -- This package contains various useful functions, some borrowed from PoC: https://github.com/VLSI-EDA/PoC
 package functions IS
+  
+  type t_int_v is array(natural range <>) of integer;
 
+  type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
+  
+  type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
+  
   -- check if one if the bits in a std_logic_vector is '1'
   function check_for_one( value: std_logic_vector ) return std_logic;
   -- Return how many bits in a std_logic_vector are '1'
@@ -21,6 +27,9 @@ package functions IS
   function or_reduct(slv : in std_logic_vector) return std_logic;
   -- Calculated ceil(a/b)   (From PoC)
   function div_ceil(a : natural; b : positive) return natural;
+
+  function GenIntegerList(start : integer; num : integer) return t_int_v;
+  
   
 end package functions;
 
@@ -98,6 +107,16 @@ package body functions is
   begin
     return (a + (b - 1)) / b;
   end function;
-  
+
+  function GenIntegerList(start : integer; num : integer) return t_int_v is
+    variable numList : t_int_v(0 to num-1);
+    variable curVal : integer := start;
+  begin
+    for i in 0 to num - 1 loop
+      numList(i) := curVal;
+      curVal := curVal + 1;
+    end loop;
+    return numList;  
+  end function;
 
 end package body functions;

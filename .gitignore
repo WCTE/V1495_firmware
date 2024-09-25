@@ -9,3 +9,11 @@ output_files/
 *stripped.stp
 *.sof
 *__
+#*
+*#
+simulation/work
+simulation/altera
+*.wlf
+*.vstf
+*.json
+*transcript

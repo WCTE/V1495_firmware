@@ -4,21 +4,16 @@ library IEEE;
 use IEEE.std_Logic_1164.all;
 --use IEEE.std_Logic_arith.all;
 use IEEE.NUMERIC_STD.ALL;
+use work.functions.all;
+
 --IEEE.std_Logic_unsigned.all;
 
 
 package V1495_regs IS
 
-  type t_int_v is array(natural range <>) of integer;
-
-  function GenIntegerList(start : integer; num : integer) return t_int_v;
            
-  type reg_data is array (natural range <>) of std_logic_vector(31 downto 0);
-  
-  type t_slv_v8 is array(natural range <>) of std_logic_vector(7 downto 0);
-  
   -- The latest git SHA, updated at compile time
-  constant GIT_SHA : std_logic_vector(31 downto 0) := x"0cc35e18";
+  constant GIT_SHA : std_logic_vector(31 downto 0) := x"0d1f9959";
 
   -- The number of read only registers
   constant numRregs :  integer := 114;
@@ -82,17 +77,8 @@ package V1495_regs IS
 
 end package V1495_regs;
 
-package body V1495_regs is
+--package body V1495_regs is
 
-  function GenIntegerList(start : integer; num : integer) return t_int_v is
-    variable numList : t_int_v(0 to num-1);
-    variable curVal : integer := start;
-  begin
-    for i in 0 to num - 1 loop
-      numList(i) := curVal;
-      curVal := curVal + 1;
-    end loop;
-    return numList;  
-  end function;
 
-end package body V1495_regs;
+
+--end package body V1495_regs;
