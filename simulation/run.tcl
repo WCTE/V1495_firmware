@@ -75,12 +75,11 @@ for {set i 31} {$i >= 0} {incr i -1}  {
 
 add wave -noupdate -divider -height 20 "Level 1 logic"
 for {set i 9} {$i >= 0} {incr i -1}  {
-    #add wave -group "L1[$i]" -label "Data mask" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/mask
-    #add wave -group "L1[$i]" -label "Input data" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/data_in
     add wave -group "L1[$i]" -label "Masked data" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/inst_logic/maskedData
     add wave -group "L1[$i]" -label "logic type" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/logic_type
     add wave -group "L1[$i]" -label "invert" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/invert
     add wave -group "L1[$i]" -label "prescale" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/prescale
+    add wave -group "L1[$i]" -label "result" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/result
 }
 
 for {set i 9} {$i >= 0} {incr i -1}  {
@@ -105,6 +104,7 @@ for {set i 3} {$i >= 0} {incr i -1}  {
     add wave -group "L2[$i]" -label "Masked data" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/inst_logic/maskedData
     add wave -group "L2[$i]" -label "logic type" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/logic_type
     add wave -group "L2[$i]" -label "invert" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/invert
+    add wave -group "L2[$i]" -label "result" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/result
 }
 for {set i 3} {$i >= 0} {incr i -1}  {
     add wave -group "L2 counters" -label "L1[$i]" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/count
@@ -141,22 +141,25 @@ add wave -label "LEMO output settings"  sim:/testbench/uut/blk_lemo_output/inst_
 
 add wave -label "Signals at lemo connectors" {lemo_out {
 
-    sim:/testbench/uut/E_Expan(0)
-    sim:/testbench/uut/E_Expan(16)
-    sim:/testbench/uut/E_Expan(1)
-    sim:/testbench/uut/E_Expan(17)
-    sim:/testbench/uut/E_Expan(12)
-    sim:/testbench/uut/E_Expan(28)
-    sim:/testbench/uut/E_Expan(13)
+
     sim:/testbench/uut/E_Expan(29)
-    
-    sim:/testbench/uut/F_Expan(0)
-    sim:/testbench/uut/F_Expan(16)
-    sim:/testbench/uut/F_Expan(1)
-    sim:/testbench/uut/F_Expan(17)
-    sim:/testbench/uut/F_Expan(12)
-    sim:/testbench/uut/F_Expan(28)
+    sim:/testbench/uut/E_Expan(13)
+    sim:/testbench/uut/E_Expan(28)
+    sim:/testbench/uut/E_Expan(12)
+    sim:/testbench/uut/E_Expan(17)
+    sim:/testbench/uut/E_Expan(1)
+    sim:/testbench/uut/E_Expan(16)
+    sim:/testbench/uut/E_Expan(0)
+
+    sim:/testbench/uut/F_Expan(29)
     sim:/testbench/uut/F_Expan(13)
-    sim:/testbench/uut/F_Expan(29)  
+    sim:/testbench/uut/F_Expan(28)
+    sim:/testbench/uut/F_Expan(12)
+    sim:/testbench/uut/F_Expan(17)
+    sim:/testbench/uut/F_Expan(1)
+    sim:/testbench/uut/F_Expan(16)
+    sim:/testbench/uut/F_Expan(0)
+
+    
 
 }}

@@ -619,6 +619,10 @@ begin
       deadtime_width => REG_RW(ARW_DEADTIME)
     );
 
+
+    --F_Expan(A395D_Mapping(0)) <= lemo_out(0) when deadtime='0' else
+    --                             '0';
+    
     proc_lemo0 : process(clk_125)
     begin
       if rising_edge(clk_125) then

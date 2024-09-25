@@ -17,8 +17,8 @@ architecture behavioral of trigger_deadtime is
 
   type t_deadtime_state is (IDLE, COUNTING);
   signal deadtime_state : t_deadtime_state := IDLE;
-  
-  signal deadtime_width_s : std_logic_vector(31 downto 0);
+
+  signal deadtime_l : std_logic;
 
 begin
 
@@ -40,7 +40,7 @@ begin
   begin
     if rising_edge(clk) then
       if reset = '1' then
-        data_out <= '0';
+        deadtime_l <= '0';
         counter := 0;
         deadtime_state <= IDLE;
       else
@@ -49,11 +49,11 @@ begin
           when IDLE =>
             if data_in = '1' then
               counter := 1;
-              data_out <= '1';
+              deadtime_l <= '1';
               deadtime_state <= COUNTING;
             else
               counter := 0;
-              data_out <= '0';
+              deadtime_l <= '0';
               deadtime_state <= IDLE;
             end if;
 
@@ -61,10 +61,10 @@ begin
           when COUNTING =>
             if counter >= to_integer(unsigned(deadtime_width)) then
               counter := 0;
-              data_out <= '0';
+              deadtime_l <= '0';
               deadtime_state <= IDLE;
             else
-              data_out <= '1';
+              deadtime_l <= '1';
               counter := counter +1;
               deadtime_state <= COUNTING;
             end if;
@@ -76,5 +76,7 @@ begin
     end IF;
   end process proc_deadtime;
 
+  data_out <= deadtime_l when unsigned(deadtime_width) > 0 else
+              '0';
 
 end architecture behavioral;
