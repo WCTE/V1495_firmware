@@ -74,7 +74,7 @@ architecture behavioral of level2_logic is
         clk => clk,
         reset => reset,
         count_en => count_en_i,
-        data_in => logic_type,
+        data_in => result_s,
         count_out => count_s
       );   
 	 
