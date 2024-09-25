@@ -36,13 +36,17 @@ end entity level2_logic;
 
 architecture behavioral of level2_logic is
 
-    signal result_s : std_logic;
-    signal mask_s : std_logic_vector(N_CHANNELS-1 downto 0);
-    signal count_s : std_logic_vector(COUNTER_WIDTH-1 downto 0);
-    signal data_s: std_logic_vector(N_CHANNELS-1 downto 0);
-	 
-  begin  
-  
+  signal result_s : std_logic;
+  signal mask_s : std_logic_vector(N_CHANNELS-1 downto 0);
+  signal count_s : std_logic_vector(COUNTER_WIDTH-1 downto 0);
+  signal data_s: std_logic_vector(N_CHANNELS-1 downto 0);
+
+  signal mask_nempty : std_logic;
+begin
+
+    mask_nempty <= '0' when mask_s = (N_CHANNELS - 1 downto 0 => '0') else
+                   '1';   
+    
     mask_s <= mask;
 	 
 	 -- Invert data if requested
@@ -73,7 +77,7 @@ architecture behavioral of level2_logic is
       port map(
         clk => clk,
         reset => reset,
-        count_en => count_en_i,
+        count_en => count_en_i and mask_nempty,
         data_in => result_s,
         count_out => count_s
       );   
