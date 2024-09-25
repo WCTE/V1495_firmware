@@ -2,13 +2,15 @@
 
 vcom -reportprogress 300 -work altera /home/sam/altera/13.0sp1/quartus/eda/sim_lib/altera_syn_attributes.vhd
 
+vcom -reportprogress 300 -work work dataGenerator.vhd
+
 vcom -reportprogress 300 -work work ../src/functions.vhd
 vcom -reportprogress 300 -work work ../src/V1495_regs_pkg.vhd
 vcom -reportprogress 300 -work work ../src/counter.vhd
 vcom -reportprogress 300 -work work ../src/logic_unit.vhd
 vcom -reportprogress 300 -work work ../src/prescale.vhd
-vcom -reportprogress 300 -work work ../src/level1_logic.vhd
-vcom -reportprogress 300 -work work ../src/level2_logic.vhd
+vcom -2008 -reportprogress 300 -work work ../src/level1_logic.vhd
+vcom -2008 -reportprogress 300 -work work ../src/level2_logic.vhd
 
 vcom -reportprogress 300 -work work altera_cmn_pll_sim.vhd
 
@@ -44,13 +46,13 @@ add wave sim:/testbench/uut/B
 add wave sim:/testbench/uut/D
 
 add wave -noupdate -divider -height 20 "Raw data counters"
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1} {
     add wave -group "A counters" -label "A[$i]" sim:/testbench/uut/blk_raw_counters/gen_a_counters($i)/count
 }
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1}  {
     add wave -group "B counters" -label "D[$i]" sim:/testbench/uut/blk_raw_counters/gen_b_counters($i)/count
 }
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1}  {
     add wave -group "D counters" -label "D[$i]" sim:/testbench/uut/blk_raw_counters/gen_d_counters($i)/count
 }
 
@@ -58,39 +60,40 @@ add wave -noupdate -divider -height 20 "pre-logic treatment"
 add wave -label "A with pre-logic" sim:/testbench/uut/prepared_signals(31:0)
 add wave -label "B with pre-logic" sim:/testbench/uut/prepared_signals(63:32)
 
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1}  {
     add wave -group "A delay values" -label "$i" sim:/testbench/uut/blk_pre_logic/inst_pre_logic/gen_pre_logic($i)/inst_pre_logic/delay
 }
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1}  {
     add wave -group "B delay values" -label "$i" sim:/testbench/uut/blk_pre_logic/inst_pre_logic/gen_pre_logic([expr $i + 32])/inst_pre_logic/delay
 }
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1}  {
     add wave -group "A gate values" -label "$i" sim:/testbench/uut/blk_pre_logic/inst_pre_logic/gen_pre_logic($i)/inst_pre_logic/gate
 }
-for {set i 0} {$i < 32} {incr i} {
+for {set i 31} {$i >= 0} {incr i -1}  {
     add wave -group "B gate values" -label "$i" sim:/testbench/uut/blk_pre_logic/inst_pre_logic/gen_pre_logic([expr $i + 32])/inst_pre_logic/gate
 }
 
 add wave -noupdate -divider -height 20 "Level 1 logic"
-for {set i 0} {$i < 10} {incr i} {
-    add wave -group "L1[$i]" -label "Data mask" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/mask
-    add wave -group "L1[$i]" -label "Input data" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/data_in
+for {set i 9} {$i >= 0} {incr i -1}  {
+    #add wave -group "L1[$i]" -label "Data mask" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/mask
+    #add wave -group "L1[$i]" -label "Input data" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/data_in
+    add wave -group "L1[$i]" -label "Masked data" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/inst_logic/maskedData
     add wave -group "L1[$i]" -label "logic type" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/logic_type
     add wave -group "L1[$i]" -label "invert" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/invert
     add wave -group "L1[$i]" -label "prescale" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/prescale
 }
 
-for {set i 0} {$i < 10} {incr i} {
-    add wave -group "L1 counters" -label "L1[$i]" sim:/testbench/uut/gen_logic_level_1(0)/inst_l1_logic/count
+for {set i 9} {$i >= 0} {incr i -1}  {
+    add wave -group "L1 counters" -label "L1[$i]" sim:/testbench/uut/gen_logic_level_1($i)/inst_l1_logic/count
 }
 add wave -label "L1 results" sim:/testbench/uut/level1_result
 
 add wave -noupdate -divider -height 20 "Level 1 pre-logic"
 add wave -label "L1 with pre-logic" sim:/testbench/uut/prepared_signals_l1
-for {set i 0} {$i < 10} {incr i} {
+for {set i 9} {$i >= 0} {incr i -1}  {
     add wave -group "L1 delay values" -label "$i" sim:/testbench/uut/blk_pre_logic_level1/inst_pre_logic/gen_pre_logic($i)/inst_pre_logic/delay
 }
-for {set i 0} {$i < 10} {incr i} {
+for {set i 9} {$i >= 0} {incr i -1}  {
     add wave -group "L1 gate values" -label "$i" sim:/testbench/uut/blk_pre_logic_level1/inst_pre_logic/gen_pre_logic($i)/inst_pre_logic/gate
 }
 
@@ -98,23 +101,21 @@ add wave -noupdate -divider -height 20 "Level 2 logic"
 add wave -label "L2 input (A)"  sim:/testbench/uut/level2_input(31:0)
 add wave -label "L2 input (B)"  sim:/testbench/uut/level2_input(63:0)
 add wave -label "L2 input (L1)"  sim:/testbench/uut/level2_input(73:64)
-for {set i 0} {$i < 4} {incr i} {
-    add wave -group "L2[$i]" -label "Data mask" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/mask
-    add wave -group "L2[$i]" -label "Input data" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/data_in
+for {set i 3} {$i >= 0} {incr i -1}  {
+    add wave -group "L2[$i]" -label "Masked data" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/inst_logic/maskedData
     add wave -group "L2[$i]" -label "logic type" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/logic_type
     add wave -group "L2[$i]" -label "invert" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/invert
+}
+for {set i 3} {$i >= 0} {incr i -1}  {
+    add wave -group "L2 counters" -label "L1[$i]" sim:/testbench/uut/gen_logic_level_2($i)/inst_l2_logic/count
 }
 add wave -label "L2 result" sim:/testbench/uut/level2_result
 
 add wave -noupdate -divider -height 20 "Spill veto"
 
 set SPILLREG [exa -noshowbase -unsigned sim:/v1495_regs/ARW_SPILL]
-add wave -label -unsigned "Pre spill channel"  sim:/testbench/uut/REG_RW($SPILLREG)(7:0)
-add wave -label -unsigned "end of spill channel"  sim:/testbench/uut/REG_RW($SPILLREG)(15:8)
-#add wave -label "Spill register"  sim:/testbench/uut/REG_RW($SPILLREG)(16)
-
-#add wave -label "End of spill channel number"  sim:/testbench/uut/blk_spill_veto/end_of_spill
-#add wave -label "Pre-spill channel number"  sim:/testbench/uut/blk_spill_veto/pre_spill
+add wave -unsigned -label "Pre spill channel"  sim:/testbench/uut/REG_RW($SPILLREG)(7:0)
+add wave -unsigned -label "end of spill channel"  sim:/testbench/uut/REG_RW($SPILLREG)(15:8)
 
 add wave -label "End of spill" sim:/testbench/uut/blk_spill_veto/inst_spill_veto/start_i
 add wave -label "Pre-spill" sim:/testbench/uut/blk_spill_veto/inst_spill_veto/end_i

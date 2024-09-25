@@ -12,7 +12,9 @@ architecture tb of testbench is
   signal clk_ext : std_logic := '0';
   signal nreset : std_logic := '1';
 
-  signal D :std_logic_vector(31 downto 0) := x"00000000";
+  signal A :std_logic_vector(31 downto 0);
+  signal B :std_logic_vector(31 downto 0);
+  signal D :std_logic_vector(31 downto 0);
 
   signal DDLY : std_logic_vector(7 downto 0);
   signal SPARE : std_logic_vector (11 DOWNTO 0);
@@ -28,47 +30,19 @@ begin
   uut : entity work.HyperK_WCTE_V1495_top
   port map(
     -- Front Panel Ports
-    A => x"00000000",
-    B => x"00000000",
-    --C  
+    A => A,
+    B => B,
     D => D,
-    --E  
-    --F 
+    
     GIN(0)  => clk_ext,
     GIN(1) => '0',
     
---    GOUT
-
-    --nOED   
-    --nOEE   
-    --nOEF  
-    --nOEG   
-    -- Port Level Select (0=NIM, 1=TTL)
-    --SELD 
-    --SELE 
-    --SELF 
-    --SELG 
-
     IDD   => "001",
     IDE  => "011",
     IDF  => "011",
 
     PULSE  => "0000",
-    --nSTART 
-    --START    
-    DDLY => DDLY,    
-    --WR_DLY0  
-    --WR_DLY1  
-    --DIRDDLY 
-                                 
-    --nOEDDLY0
-    --nOEDDLY1 
-
-    -- LED drivers
-    --nLEDG    
-    --nLEDR   
-
-    -- Spare
+    DDLY => DDLY,  
     SPARE  => SPARE,
 
     -- Local Bus in/out signals
@@ -77,10 +51,13 @@ begin
     WnR     => '0',
     nADS     => '0',
     LCLK     => clk_int
-    --nREADY    
-    --nINT     
-    --LAD     
   );
 
+  data_source : entity work.dataGenerator
+  port map(
+    A => A,
+    B => B,
+    D =>D
+  );
 
 end architecture tb;
