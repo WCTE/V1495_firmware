@@ -24,19 +24,20 @@ end entity counter;
 
 architecture behavioral of counter is
   signal counter_unsigned : unsigned(count_width - 1 downto 0);
+  signal do_count : std_logic;
 begin
 
   proc_count : process(clk)
     variable prev : std_logic;
-    variable do_count : std_logic;
+    --variable do_count : std_logic;
   begin
     if rising_edge(clk) then
       if reset = '1' then
         counter_unsigned <= (others => '0');
         prev := '0';
-        do_count := '0';
+        do_count <= '0';
       else
-        do_count := not prev and data_in;  -- detect the edge of `data_in`
+        do_count <= not prev and data_in;  -- detect the edge of `data_in`
         if count_en = '1' and do_count = '1' then
           counter_unsigned <= counter_unsigned + 1;
         end if;		
