@@ -83,7 +83,6 @@ begin
      count_width => COUNTER_WIDTH
    )
    port map(
-     clk => clk,
      reset => reset,
      count_en => count_en_i and mask_nempty,
      data_in => result_s,

@@ -41,9 +41,9 @@ begin
     IDE  => "011",
     IDF  => "011",
 
-    PULSE  => "0000",
-    DDLY => DDLY,  
-    SPARE  => SPARE,
+    --PULSE  => "0000",
+    --DDLY => DDLY,  
+    --SPARE  => SPARE,
 
     -- Local Bus in/out signals
     nLBRES    => nreset,

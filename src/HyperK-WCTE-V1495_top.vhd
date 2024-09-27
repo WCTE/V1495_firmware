@@ -29,12 +29,10 @@ entity HyperK_WCTE_V1495_top is
     -- Front Panel Ports
     A        : IN     std_logic_vector (31 DOWNTO 0);  -- In A (32 x LVDS/ECL)
     B        : IN     std_logic_vector (31 DOWNTO 0);  -- In B (32 x LVDS/ECL)
---    C        : OUT     std_logic_vector (31 DOWNTO 0);  -- In C (32 x LVDS/ECL)
     D        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out D (I/O Expansion)
     E        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out E (I/O Expansion)
     F        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out F (I/O Expansion)
     GIN      : IN     std_logic_vector ( 1 DOWNTO 0);   -- In G - LEMO (2 x NIM/TTL)
---    GOUT     : OUT    std_logic_vector ( 1 DOWNTO 0);   -- Out G - LEMO (2 x NIM/TTL)
     -- Port Output Enable (0=Output, 1=Input)
     nOED     : OUT    std_logic;                       -- Output Enable Port D (only for A395D)
     nOEE     : OUT    std_logic;                       -- Output Enable Port E (only for A395D)
@@ -54,27 +52,6 @@ entity HyperK_WCTE_V1495_top is
     IDD      : IN     std_logic_vector (2 DOWNTO 0);   -- Slot D
     IDE      : IN     std_logic_vector (2 DOWNTO 0);   -- Slot E
     IDF      : IN     std_logic_vector (2 DOWNTO 0);   -- Slot F
-
-    -- Delay Lines
-    -- 0:1 => PDL (Programmable Delay Line): Step = 0.25ns / FSR = 64ns
-    -- 2:3 => FDL (Free Running Delay Line with fixed delay)
---    PULSE    : IN     std_logic_vector (3 DOWNTO 0);   -- Output of the delay line (0:1 => PDL; 2:3 => FDL)
---    nSTART   : OUT    std_logic_vector (3 DOWNTO 2);   -- Start of FDL (active low)
---    START    : OUT    std_logic_vector (1 DOWNTO 0);   -- Input of PDL (active high)
---    DDLY     : INOUT  std_logic_vector (7 DOWNTO 0);   -- R/W Data for the PDL
---    WR_DLY0  : OUT    std_logic;                       -- Write signal for the PDL0
---    WR_DLY1  : OUT    std_logic;                       -- Write signal for the PDL1
---    DIRDDLY  : OUT    std_logic;                       -- Direction of PDL data (0 => Read Dip Switches)
-                                                       --                       (1 => Write from FPGA)
---    nOEDDLY0 : OUT    std_logic;                       -- Output Enable for PDL0 (active low)
---    nOEDDLY1 : OUT    std_logic;                       -- Output Enable for PDL1 (active low)
-
-    -- LED drivers
---    nLEDG    : OUT    std_logic;                       -- Green (active low)
---    nLEDR    : OUT    std_logic;                       -- Red (active low)
-
-    -- Spare
---    SPARE    : INOUT  std_logic_vector (11 DOWNTO 0);
 
     -- Local Bus in/out signals
     nLBRES     : IN     std_logic;
@@ -257,30 +234,13 @@ begin
         count_width => COUNT_WIDTH_INPUTS_AB
       )
       port map(
-        clk => clk_125,
         reset => reset_125,
         count_en => not spill_veto,
         data_in => A(i),
         count_out => count  
       );
       -- Write count to a register      
-		
---		
---		   inst_dly: entity work.delay_chain
---     generic map (
---       W_WIDTH  => COUNT_WIDTH_INPUTS_AB,
---       D_DEPTH   => 2
---     )
---     port map (
---       clk       => clk_125,
---       en_i      => '1',
---       sig_i     => count,
---       sig_o     => count_dly
---     );
-		
-		
-		
-      REG_R(AR_ACOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_AB => '0') & count;
+		REG_R(AR_ACOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_AB => '0') & count;
     end generate gen_a_counters;
 	
     -- Generate counters for B channels	
@@ -292,7 +252,6 @@ begin
         count_width => COUNT_WIDTH_INPUTS_AB
       )
       port map(
-        clk => clk_125,
         reset => reset_125,
         count_en => not spill_veto,
         data_in => B(i),
@@ -311,7 +270,6 @@ begin
         count_width => COUNT_WIDTH_INPUTS_D
       )
       port map(
-        clk => clk_125,
         reset => reset_125,
         count_en => not spill_veto,
         data_in => D(i),
@@ -691,17 +649,21 @@ begin
     signal end_of_spill : std_logic;
     signal pre_spill : std_logic;	 
 	 signal spill_veto_enable :std_logic;
+	 
+	 signal tmp_veto : std_logic;
   begin
     pre_spill <= allData(to_integer(unsigned(REG_RW(ARW_SPILL)(7 downto 0))));
     end_of_spill <= allData(to_integer(unsigned(REG_RW(ARW_SPILL)(15 downto 8))));
     spill_veto_enable <= REG_RW(ARW_SPILL)(16);
+	 
+	 spill_veto <= tmp_veto or REG_RW(ARW_SPILL)(31);
 	 
     inst_spill_veto: entity work.veto
     port map(
       start_i => end_of_spill,
       end_i   => pre_spill,
       veto_en => spill_veto_enable,
-      veto_o  => spill_veto
+      veto_o  => tmp_veto
     );  
   end block blk_spill_veto;
   

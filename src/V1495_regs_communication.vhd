@@ -265,7 +265,7 @@ begin
    inst_dly: entity work.delay_chain
      generic map (
        W_WIDTH  => 13,
-       D_DEPTH   => 3
+       D_DEPTH   => 4
      )
      port map (
        clk       => clk_data,

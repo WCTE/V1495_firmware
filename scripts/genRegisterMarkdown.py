@@ -269,13 +269,15 @@ f.write("\n\n")
 f.write("## Prescaling\n\n")
 prescale = READWRITE.pop('ARW_POST_L1_PRESCALE')
 f.write("The results of level 1 logic can be prescaled by powers of 2.\n")
-f.write("For a prescale value n, only 1/n positive results coming from the logic unit will be kept.\n")
-f.write("The prescale factor is set by the most significant bit of the relevant register.\n\n")
+f.write("For a prescale value n, only 1/n positive results coming from the logic unit will be kept.\n\n")
+#f.write("The prescale factor is set by the most significant bit of the relevant register.\n\n")
 n=7
-f.write("For example, to prescale the output of `L1` #"+str(n)+" by 4, set register `"+hex(prescale['addresses'][n])+"` to `0x10` (`0b10000` or 2<sup>4</sup>).\n")
-f.write("The prescale will ignore any bits lower than the MSB: 0x10 (0b10000) will produce the same prescaling as 0x1F (0b11111)\n\n")
+f.write("To prescale the output of `L1` #"+str(n)+" by 4, (2<sup>2</sup>) set register `"+hex(prescale['addresses'][n])+"` to `0x4` (`0b100` or 2<sup>2</sup>).\n")
 
+f.write("**Note**: The prescale will ignore any bits lower than the MSB: 0x7 (0b111) will produce the same prescaling as 0x4 (0b100)\n\n")
 
+f.write("**Note**: The counter for the prescaled logic unit will still increment for every trigger, but only 1/n triggers will actually pass to the next logic level.\n\n")
+    
 f.write("The registers to prescale the output of `L1 are:\n")
 f.write("| Unit | register |\n")
 f.write("| ---- | ------- |\n")
