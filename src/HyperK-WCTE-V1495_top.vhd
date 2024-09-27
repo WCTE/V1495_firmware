@@ -102,7 +102,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   -- Data Producer signals
   signal input_A_mask     : std_logic_vector(31 downto 0) := (others => 'Z');
   signal input_B_mask     : std_logic_vector(31 downto 0) := (others => 'Z');
-  signal D_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
+  --signal D_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
   signal F_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
   signal E_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
 
@@ -191,10 +191,18 @@ begin
   
 			 
   reset_125 <= reset_startup or reset_reg;  
-      
+   
+  REG_R(4)(31 downto 0) <= x"00000000";  
+		
   -- firmware version
-  REG_R(AR_VERSION)(3 downto 0)   <= x"2";  -- Firmware release
+  REG_R(AR_VERSION)(3 downto 0)   <= x"3";  -- Firmware release
   REG_R(AR_VERSION)(7 downto 4)   <= x"0";  -- Demo number
+  REG_R(AR_VERSION)(14 downto 8)  <= "0000000";
+  REG_R(AR_VERSION)(31 downto 16)  <= x"0000";
+
+  -- This bit must be '0', otherwise firmware will stop working
+  -- after about 30 minutes. See page 23 of the manual for details
+  REG_R(AR_VERSION)(15) <= '0';
 
   REG_R(AR_GIT) <= GIT_SHA;
   
@@ -454,7 +462,7 @@ begin
       clk0_divide_by      => 1,
       clk0_duty_cycle     => 50,
       clk0_multiply_by    => 2,
-      inclk0_input_frequency  => 16000  --actually period in us.
+      inclk0_input_frequency  => 16000
     )
     port map (
       areset     => not nLBRES,
@@ -468,7 +476,7 @@ begin
       clk0_divide_by      => 8,
       clk0_duty_cycle     => 50,
       clk0_multiply_by    => 25,
-      inclk0_input_frequency  => 25000  --actually period in us.
+      inclk0_input_frequency  => 25000
     )
     port map (
       areset     => not nLBRES,
@@ -675,7 +683,7 @@ begin
   -- Port Output Enable (0=Output, 1=Input)
   nOED  <=  '1';    -- Output Enable Port D (only for A395D)
   nOEG  <=  '1';    -- Output Enable Port G
-  D     <=  D_Expan  when IDD = "011"  else (others => 'Z');
+  --D     <=  D_Expan  when IDD = "011"  else (others => 'Z');
   
   
   nOEE <= '0';

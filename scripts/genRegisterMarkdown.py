@@ -306,7 +306,7 @@ f.write("If bit 8 is `1`, then the output will be the requested signal with dela
 f.write("In the case of `L2` outputs, the output will have a gate width of 1 clock tick.\n\n")
 n=6
 f.write("For example, setting register `"+hex(lemo_out['ARW_F']['addresses'][n])+"` to `0x12` will output raw channel `A18` on LEMO port "+str(n)+" of the mezzanine card in port F.\n")
-f.write("Setting this register to 0x32 instead will output the same channel, but with the delay and gate applied\n\n")
+f.write("Setting this register to `0x92` instead will output the same channel, but with the delay and gate applied\n\n")
 
 f.write("The registers to control the LEMO outputa are:\n")
 f.write("| LEMO | Port E | Port F |\n")

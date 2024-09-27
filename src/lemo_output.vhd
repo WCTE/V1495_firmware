@@ -51,20 +51,20 @@ begin
 
   end generate;
   
-  data_out <= dlyin;
+  --data_out <= dlyin;
   
---   inst_dly: entity work.delay_chain
---     generic map (
---       W_WIDTH  => 16,
---       D_DEPTH   => 3
---     )
---     port map (
---       clk       => clk,
---       en_i      => '1',
---       sig_i     => dlyin,
---       sig_o     => data_out
---     );
---  
+   inst_dly: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 16,
+       D_DEPTH   => 3
+     )
+     port map (
+       clk       => clk,
+       en_i      => '1',
+       sig_i     => dlyin,
+       sig_o     => data_out
+     );
+  
   
     
 end architecture behavioral;

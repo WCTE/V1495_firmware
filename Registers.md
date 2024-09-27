@@ -277,7 +277,7 @@ If bit 8 is `1`, then the output will be the requested signal with delay and gat
 In the case of `L2` outputs, the output will have a gate width of 1 clock tick.
 
 For example, setting register `0x30c4` to `0x12` will output raw channel `A18` on LEMO port 6 of the mezzanine card in port F.
-Setting this register to 0x32 instead will output the same channel, but with the delay and gate applied
+Setting this register to `0x92` instead will output the same channel, but with the delay and gate applied
 
 The registers to control the LEMO outputa are:
 | LEMO | Port E | Port F |
