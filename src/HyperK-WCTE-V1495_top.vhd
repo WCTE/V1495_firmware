@@ -29,12 +29,12 @@ entity HyperK_WCTE_V1495_top is
     -- Front Panel Ports
     A        : IN     std_logic_vector (31 DOWNTO 0);  -- In A (32 x LVDS/ECL)
     B        : IN     std_logic_vector (31 DOWNTO 0);  -- In B (32 x LVDS/ECL)
-    C        : OUT     std_logic_vector (31 DOWNTO 0);  -- In C (32 x LVDS/ECL)
+--    C        : OUT     std_logic_vector (31 DOWNTO 0);  -- In C (32 x LVDS/ECL)
     D        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out D (I/O Expansion)
     E        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out E (I/O Expansion)
     F        : INOUT  std_logic_vector (31 DOWNTO 0);  -- In/Out F (I/O Expansion)
     GIN      : IN     std_logic_vector ( 1 DOWNTO 0);   -- In G - LEMO (2 x NIM/TTL)
-    GOUT     : OUT    std_logic_vector ( 1 DOWNTO 0);   -- Out G - LEMO (2 x NIM/TTL)
+--    GOUT     : OUT    std_logic_vector ( 1 DOWNTO 0);   -- Out G - LEMO (2 x NIM/TTL)
     -- Port Output Enable (0=Output, 1=Input)
     nOED     : OUT    std_logic;                       -- Output Enable Port D (only for A395D)
     nOEE     : OUT    std_logic;                       -- Output Enable Port E (only for A395D)
@@ -58,23 +58,23 @@ entity HyperK_WCTE_V1495_top is
     -- Delay Lines
     -- 0:1 => PDL (Programmable Delay Line): Step = 0.25ns / FSR = 64ns
     -- 2:3 => FDL (Free Running Delay Line with fixed delay)
-    PULSE    : IN     std_logic_vector (3 DOWNTO 0);   -- Output of the delay line (0:1 => PDL; 2:3 => FDL)
-    nSTART   : OUT    std_logic_vector (3 DOWNTO 2);   -- Start of FDL (active low)
-    START    : OUT    std_logic_vector (1 DOWNTO 0);   -- Input of PDL (active high)
-    DDLY     : INOUT  std_logic_vector (7 DOWNTO 0);   -- R/W Data for the PDL
-    WR_DLY0  : OUT    std_logic;                       -- Write signal for the PDL0
-    WR_DLY1  : OUT    std_logic;                       -- Write signal for the PDL1
-    DIRDDLY  : OUT    std_logic;                       -- Direction of PDL data (0 => Read Dip Switches)
+--    PULSE    : IN     std_logic_vector (3 DOWNTO 0);   -- Output of the delay line (0:1 => PDL; 2:3 => FDL)
+--    nSTART   : OUT    std_logic_vector (3 DOWNTO 2);   -- Start of FDL (active low)
+--    START    : OUT    std_logic_vector (1 DOWNTO 0);   -- Input of PDL (active high)
+--    DDLY     : INOUT  std_logic_vector (7 DOWNTO 0);   -- R/W Data for the PDL
+--    WR_DLY0  : OUT    std_logic;                       -- Write signal for the PDL0
+--    WR_DLY1  : OUT    std_logic;                       -- Write signal for the PDL1
+--    DIRDDLY  : OUT    std_logic;                       -- Direction of PDL data (0 => Read Dip Switches)
                                                        --                       (1 => Write from FPGA)
-    nOEDDLY0 : OUT    std_logic;                       -- Output Enable for PDL0 (active low)
-    nOEDDLY1 : OUT    std_logic;                       -- Output Enable for PDL1 (active low)
+--    nOEDDLY0 : OUT    std_logic;                       -- Output Enable for PDL0 (active low)
+--    nOEDDLY1 : OUT    std_logic;                       -- Output Enable for PDL1 (active low)
 
     -- LED drivers
-    nLEDG    : OUT    std_logic;                       -- Green (active low)
-    nLEDR    : OUT    std_logic;                       -- Red (active low)
+--    nLEDG    : OUT    std_logic;                       -- Green (active low)
+--    nLEDR    : OUT    std_logic;                       -- Red (active low)
 
     -- Spare
-    SPARE    : INOUT  std_logic_vector (11 DOWNTO 0);
+--    SPARE    : INOUT  std_logic_vector (11 DOWNTO 0);
 
     -- Local Bus in/out signals
     nLBRES     : IN     std_logic;
@@ -83,7 +83,7 @@ entity HyperK_WCTE_V1495_top is
     nADS       : IN     std_logic;
     LCLK       : IN     std_logic;
     nREADY     : OUT    std_logic;
-    nINT       : OUT    std_logic;
+    --nINT       : OUT    std_logic;
     LAD        : INOUT  std_logic_vector (15 DOWNTO 0)
   );
 
@@ -164,6 +164,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   
   -- Reset based on R/W of specific register
   signal reset_reg : std_logic;
+  signal reset_reg_s : std_logic;
   -- Reset from nLBRES, moved to clk_125 domain
   signal reset_startup : std_logic;
   -- Reset in clk_125 domain
@@ -180,12 +181,26 @@ begin
   begin
     if rising_edge(clk_125) then
 	   if ADDR_W(11) = '1' and to_integer(unsigned(ADDR_W(10 downto 0))) = ARW_RESET then
-        reset_reg <= '1';
+        reset_reg_s <= '1';
       else
-        reset_reg <= '0';
+        reset_reg_s <= '0';
       end if;
     end if;
   end process;
+  
+	   inst_dly: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 1,
+       D_DEPTH   => 2
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i(0)     => reset_reg_s,
+       sig_o(0)     => reset_reg
+     );
+  
+  
   
   -- Synchronize nLBRES into clk_125 domain
   inst_rst_sync : entity work.areset_sync
@@ -218,7 +233,7 @@ begin
     nADS       => nADS,
     LCLK       => LCLK,
     nREADY     => nREADY,
-    nINT       => nINT,
+    --nINT       => nINT,
     LAD        => LAD,
     
     ADDR_W => ADDR_W,      
@@ -235,6 +250,7 @@ begin
     -- Generate counters for A channels		
     gen_a_counters : for i in A'range generate
       signal count : std_logic_vector(COUNT_WIDTH_INPUTS_AB-1 downto 0);
+      --signal count_dly : std_logic_vector(COUNT_WIDTH_INPUTS_AB-1 downto 0);
     begin
       inst_counter : entity work.counter
       generic map(
@@ -248,6 +264,22 @@ begin
         count_out => count  
       );
       -- Write count to a register      
+		
+--		
+--		   inst_dly: entity work.delay_chain
+--     generic map (
+--       W_WIDTH  => COUNT_WIDTH_INPUTS_AB,
+--       D_DEPTH   => 2
+--     )
+--     port map (
+--       clk       => clk_125,
+--       en_i      => '1',
+--       sig_i     => count,
+--       sig_o     => count_dly
+--     );
+		
+		
+		
       REG_R(AR_ACOUNTERS(i)) <= (31 downto COUNT_WIDTH_INPUTS_AB => '0') & count;
     end generate gen_a_counters;
 	
@@ -603,11 +635,11 @@ begin
       );
  
     -- Map outputs of lemo_output to the actuall lemo connectors
-    gen_lemo_out : for i in 7 downto 1 generate
-      F_Expan(A395D_Mapping(i)) <= lemo_out(i); 
-      E_Expan(A395D_Mapping(i)) <= lemo_out(i+8); 	
-    end generate;
-    E_Expan(A395D_Mapping(0)) <= lemo_out(8);
+--    gen_lemo_out : for i in 7 downto 1 generate
+--      F_Expan(A395D_Mapping(i)) <= lemo_out(i); 
+--      E_Expan(A395D_Mapping(i)) <= lemo_out(i+8); 	
+--    end generate;
+--    E_Expan(A395D_Mapping(0)) <= lemo_out(8);
 	 
     -- Generate deadtime after trigger on lemo #0
     inst_deadtime : entity work.trigger_deadtime
@@ -631,6 +663,23 @@ begin
         else 
           F_Expan(A395D_Mapping(0)) <= '0';
         end if;
+		  F_Expan(A395D_Mapping(1)) <= lemo_out(1); 
+		  F_Expan(A395D_Mapping(2)) <= lemo_out(2); 
+		  F_Expan(A395D_Mapping(3)) <= lemo_out(3); 
+		  F_Expan(A395D_Mapping(4)) <= lemo_out(4); 
+		  F_Expan(A395D_Mapping(5)) <= lemo_out(5); 
+		  F_Expan(A395D_Mapping(6)) <= lemo_out(6); 
+		  F_Expan(A395D_Mapping(7)) <= lemo_out(7); 
+		  
+		  E_Expan(A395D_Mapping(0)) <= lemo_out(8); 
+		  E_Expan(A395D_Mapping(1)) <= lemo_out(9); 
+		  E_Expan(A395D_Mapping(2)) <= lemo_out(10); 
+		  E_Expan(A395D_Mapping(3)) <= lemo_out(11); 
+		  E_Expan(A395D_Mapping(4)) <= lemo_out(12); 
+		  E_Expan(A395D_Mapping(5)) <= lemo_out(13); 
+		  E_Expan(A395D_Mapping(6)) <= lemo_out(14); 
+		  E_Expan(A395D_Mapping(7)) <= lemo_out(15); 
+		  
       end if;
     end process proc_lemo0;
     
@@ -663,23 +712,28 @@ begin
   nOEG  <=  '1';    -- Output Enable Port G
   D     <=  D_Expan  when IDD = "011"  else (others => 'Z');
   
+  
+  nOEE <= '0';
+  nOEF <= '0';
   F     <=  F_Expan    when IDF = "011"  else (others => 'Z');
   E     <=  E_Expan    when IDE = "011"  else (others => 'Z');
 
   
  
-  nOEDDLY0  <=  '0';  -- Output Enable for PDL0 (active low)
-  nOEDDLY1  <=  '0';  -- Output Enable for PDL1 (active low)
+  --nOEDDLY0  <=  '0';  -- Output Enable for PDL0 (active low)
+  --nOEDDLY1  <=  '0';  -- Output Enable for PDL1 (active low)
   
   -- Port Level Select (0=NIM, 1=TTL)
   SELD      <=  '1';    -- Output Level Select Port D (only for A395D)
   SELG      <=  '1';
+  SELE      <=  '0';
+  SELF      <=  '0';
   
 
-  DIRDDLY   <=  '1';  -- Direction of PDL data (0 => Read Dip Switches)
+  --DIRDDLY   <=  '1';  -- Direction of PDL data (0 => Read Dip Switches)
                               --                       (1 => Write from FPGA)                           
-  WR_DLY0   <=  '0';
-  WR_DLY1   <=  '0';
+  --WR_DLY0   <=  '0';
+  --WR_DLY1   <=  '0';
   
 
 end rtl;

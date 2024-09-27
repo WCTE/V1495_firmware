@@ -13,7 +13,7 @@ package V1495_regs IS
 
            
   -- The latest git SHA, updated at compile time
-  constant GIT_SHA : std_logic_vector(31 downto 0) := x"0d1f9959";
+  constant GIT_SHA : std_logic_vector(31 downto 0) := x"0fc52556";
 
   -- The number of read only registers
   constant numRregs :  integer := 114;

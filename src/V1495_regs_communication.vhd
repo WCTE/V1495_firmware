@@ -23,7 +23,7 @@ entity V1495_regs_communication is
     nADS       : in   	std_logic;
     LCLK       : in   	std_logic;
     nREADY     : out    std_logic;
-    nINT       : out	std_logic;
+    --nINT       : out	std_logic;
     LAD        : inout  std_logic_vector(15 DOWNTO 0);
 	 
     ADDR_W : out std_logic_vector(11 downto 0);
@@ -298,8 +298,8 @@ begin
        lpm_showahead => "OFF",
        lpm_type => "dcfifo",
        lpm_width => 32,
-       wrsync_delaypipe    => 4,
-       rdsync_delaypipe    => 8,
+       wrsync_delaypipe    => 1,
+       rdsync_delaypipe    => 1,
      
        lpm_widthu => log2ceil(4),
        overflow_checking => "ON",
