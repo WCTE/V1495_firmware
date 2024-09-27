@@ -165,7 +165,7 @@ begin
     end if;
   end process;
   
-	   inst_dly: entity work.delay_chain
+	   inst_dly_reg_rst: entity work.delay_chain
      generic map (
        W_WIDTH  => 1,
        D_DEPTH   => 2
@@ -177,15 +177,18 @@ begin
        sig_o(0)     => reset_reg
      );
   
+  	 inst_dly_LBRES_rst: entity work.delay_chain
+     generic map (
+       W_WIDTH  => 1,
+       D_DEPTH   => 2
+     )
+     port map (
+       clk       => clk_125,
+       en_i      => '1',
+       sig_i(0)     => not nLBRES,
+       sig_o(0)     => reset_startup
+     );
   
-  
-  -- Synchronize nLBRES into clk_125 domain
-  inst_rst_sync : entity work.areset_sync
-    port map( 
-      clk           => clk_125,
-      async_rst_i   => not nLBRES,
-      sync_rst_o    => reset_startup
-      );
 			 
   reset_125 <= reset_startup or reset_reg;  
       

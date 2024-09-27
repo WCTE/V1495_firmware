@@ -53,8 +53,13 @@ begin
   mask_nempty <= '0' when mask_s = (N_CHANNELS - 1 downto 0 => '0') else
                 '1';
   
+  proc_timing : process(clk)
+  begin
+  if rising_edge(clk) then
   mask_s <= mask;
   l_type_s <= logic_type;
+  end if;
+  end process proc_timing;
 
   -- Invert data if requested
   gen_inv: for i in N_CHANNELS - 1 downto 0 generate

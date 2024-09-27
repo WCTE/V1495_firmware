@@ -241,11 +241,12 @@ The results of level 1 logic can be prescaled by powers of 2.
 For a prescale value n, only 1/n positive results coming from the logic unit will be kept.
 
 To prescale the output of `L1` #7 by 4, (2<sup>2</sup>) set register `0x30d6` to `0x4` (`0b100` or 2<sup>2</sup>).
+
 **Note**: The prescale will ignore any bits lower than the MSB: 0x7 (0b111) will produce the same prescaling as 0x4 (0b100)
 
 **Note**: The counter for the prescaled logic unit will still increment for every trigger, but only 1/n triggers will actually pass to the next logic level.
 
-The registers to prescale the output of `L1 are:
+The registers to prescale the outputs of `L1` are:
 | Unit | register |
 | ---- | ------- |
 | 0 | 0x30c8 | 
