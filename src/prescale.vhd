@@ -21,53 +21,52 @@ begin
 
 	proc_scale : process(clk)
 	begin
-	  if rising_edge(clk) then
-	    if prescale_value(7) = '1' then
-		   if unsigned(counter_value(6 downto 0)) = 0 then 
+	  if rising_edge(clk) then		 
+ 	    if prescale_value(7) = '1' then
+		   if not(unsigned(counter_value(6 downto 0)) = 0) then 
 			  prescaled_result <= logic_result; 
 			else 
 			  prescaled_result <= '0';  
 			end if;
 		 elsif prescale_value(6) = '1' then
-		 	if unsigned(counter_value(5 downto 0)) = 0 then
+		 	if not(unsigned(counter_value(5 downto 0)) = 0) then
 			  prescaled_result <= logic_result; 
 			else 
 			  prescaled_result <= '0';  
 			end if;	 
 		 elsif prescale_value(5) = '1' then
-		   if unsigned(counter_value(4 downto 0)) = 0 then
+		   if not(unsigned(counter_value(4 downto 0)) = 0) then
 			  prescaled_result <= logic_result; 
 			else 
 			  prescaled_result <= '0';  
 			end if;
 		 elsif prescale_value(4) = '1' then
-		   if unsigned(counter_value(3 downto 0)) = 0 then
+		   if not(unsigned(counter_value(3 downto 0)) = 0) then
 			  prescaled_result <= logic_result; 
 			else 
 			  prescaled_result <= '0';  
 			end if;
 		 elsif prescale_value(3) = '1' then
-		   if unsigned(counter_value(2 downto 0)) = 0 then
+		   if not(unsigned(counter_value(2 downto 0)) = 0) then
 			  prescaled_result <= logic_result; 
 			else 
 			  prescaled_result <= '0';  
 			end if;
 		 elsif prescale_value(2) = '1' then
-		   if unsigned(counter_value(1 downto 0)) = 0 then
+		   if not(unsigned(counter_value(1 downto 0)) = 0) then
 			  prescaled_result <= logic_result; 
 			else 
 			  prescaled_result <= '0';  
 			end if;
 		 elsif prescale_value(1) = '1' then
-		   if unsigned(counter_value(0 downto 0)) = 0 then
+		   if not(unsigned(counter_value(0 downto 0)) = 0) then
 			  prescaled_result <= logic_result; 
 			else
 			  prescaled_result <= '0';  
-			end if;
+			end if; 
 		 else
 		   prescaled_result <= logic_result;
 		 end if;
-		 
 	  end if;
 	end process proc_scale;
 
