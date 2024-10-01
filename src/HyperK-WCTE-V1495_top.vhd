@@ -195,8 +195,8 @@ begin
   REG_R(4)(31 downto 0) <= x"00000000";  
 		
   -- firmware version
-  REG_R(AR_VERSION)(3 downto 0)   <= x"3";  -- Firmware release
-  REG_R(AR_VERSION)(7 downto 4)   <= x"0";  -- Demo number
+  REG_R(AR_VERSION)(3 downto 0)   <= x"0";  -- Minor version
+  REG_R(AR_VERSION)(7 downto 4)   <= x"1";  -- Major version
   REG_R(AR_VERSION)(14 downto 8)  <= "0000000";
   REG_R(AR_VERSION)(31 downto 16)  <= x"0000";
 
