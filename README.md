@@ -82,10 +82,79 @@ Note that this leaves out:
 
 Register access is discussed in detail in the [registers](Registers.md) document
 
-# Build requirements
+# Building the firmware
+
+## Requirements
 
 [Quartus 13.0.1](https://www.intel.com/content/www/us/en/software-kit/711919/intel-quartus-ii-subscription-edition-design-software-version-13-0sp1-for-linux.html) is required to build this firmware.
 Newer versions of Quartus no longer support the first generation Cyclone devices.
 
 A valid license is required to run Quartus.
 Information on Quartus licenses at CERN can be found [here](https://engineering-software.docs.cern.ch/eda/sw/intel_quartus_ii/)
+
+## Compiling the code
+
+The firmware can be compiled in Quartus using the GUI, or by running the `compile.sh` script in the [scripts](./scripts) directory.
+
+## Programming the FPGA
+
+There are two ways to program the FPGA:
+ - Via the CAEN upgrader tool
+ - Via USB blaster dongle
+
+### CAEN Upgrader tool
+
+Programming via the CAEN upgrader loads the firmware into the flash memory.
+The FPGA is then programmed from the flash memory when the V1495 boots up.
+
+The benifit of this is method that is stable upon power cycling.
+The drawback is that a power cycle is required to apply the firmware.
+
+This is the recommended way of programming when not actively debugging the firmware
+
+### USB blaster dongle
+
+The other programming option is to use a [USB blaster dongle](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=46).
+For this, the not-USB end if the dongle must be connected to the lower of the two matching ports on the V1495.
+
+The benifit of this method is that the firmware is immediately available, no need to restart.
+The drawback is that a power cycle will reset the firmware to the last version programmed via the CAEN upgrader.
+
+This is recommended for firmware debugging and development.
+
+**NOTE**: Having the USB Blaster dongle connected to the V1495 will block the CAEN Upgrader from working.
+Remove the USB Blaster before programming via the CAEN Upgrader
+
+## Programming script
+
+A script is provided to ease programming of the V1495: `scripts/V1495-Program.sh`.
+
+```
+Usage: V1495-Program.sh [-m|--method] [-f|--file FILE]
+                        [-v|--vme VME] [-a|--arg ARGS]
+                        [-h|--help]
+
+  This command programs a CAEN V1495 via the CAEN upgrader or
+  a USB-Blaster dongle
+
+  Options:
+      -m, --method
+            Method used to program the V1495. Options are CAEN
+            or usb-blaster.
+      -f, --file
+            Name of the bit file to be programmed onto the V1495.
+            CAEN programming requires an 'rbf' file, usb-blaster
+            required an 'sof' file.
+      -v, --vme
+            16 most significant bits of the VME address (the value
+            set by the rotary switches on the board).
+            Not required for usb-blaster programming.
+      -a, --arg
+            Arguments for connection. For CAEN programming, use the
+            USB device number. For usb-blaster, run 'jtagconfig' and
+            use the text between '[' and ']' for the appropriate device
+      -h, --help
+            Print this help
+```
+
+
