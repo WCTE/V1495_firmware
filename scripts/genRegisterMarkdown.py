@@ -269,8 +269,11 @@ f.write("\n\n")
 f.write("## Prescaling\n\n")
 prescale = READWRITE.pop('ARW_POST_L1_PRESCALE')
 f.write("The results of level 1 logic can be prescaled by powers of 2.\n")
-f.write("For a prescale value n, only 1/n positive results coming from the logic unit will be kept.\n\n")
-#f.write("The prescale factor is set by the most significant bit of the relevant register.\n\n")
+f.write("Bits [7:0] of the register is the value of the prescale.\n")
+f.write("Bit [8] controls how the prescale is applied:\n")
+f.write(" - `0`: (n-1)/n triggers are passed through\n")
+f.write(" - `1`: 1/n triggers are passed through\n")
+
 n=7
 f.write("To prescale the output of `L1` #"+str(n)+" by 4, (2<sup>2</sup>) set register `"+hex(prescale['addresses'][n])+"` to `0x4` (`0b100` or 2<sup>2</sup>).\n\n")
 

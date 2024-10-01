@@ -102,7 +102,7 @@ architecture rtl of HyperK_WCTE_V1495_top is
   -- Data Producer signals
   signal input_A_mask     : std_logic_vector(31 downto 0) := (others => 'Z');
   signal input_B_mask     : std_logic_vector(31 downto 0) := (others => 'Z');
-  --signal D_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
+  signal D_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
   signal F_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
   signal E_Expan          : std_logic_vector(31 downto 0) := (others => 'Z');
 
@@ -247,7 +247,7 @@ begin
       port map(
         reset => reset_125,
         count_en => not spill_veto,
-        data_in => A(i),
+        data_in => allData(i),
         count_out => count  
       );
       -- Write count to a register      
@@ -265,7 +265,7 @@ begin
       port map(
         reset => reset_125,
         count_en => not spill_veto,
-        data_in => B(i),
+        data_in => allData(i+32),
         count_out => count  
       );    
       -- Write count to a register  
@@ -357,7 +357,7 @@ begin
       mask => REG_RW(ARW_BMASK_L1(i)) & REG_RW(ARW_AMASK_L1(i)),
       data_in => prepared_signals,
       logic_type => REG_RW(ARW_LOGIC_TYPE)(i),
-      prescale => REG_RW(ARW_POST_L1_PRESCALE(i))(7 downto 0),
+      prescale => REG_RW(ARW_POST_L1_PRESCALE(i))(8 downto 0),
       invert => REG_RW(ARW_BINV_L1(i)) & REG_RW(ARW_AINV_L1(i)),
       count_en_i => not spill_veto,    
 		
@@ -688,6 +688,7 @@ begin
   
   nOEE <= '0';
   nOEF <= '0';
+  D     <=  (others => 'Z');
   F     <=  F_Expan    when IDF = "011"  else (others => 'Z');
   E     <=  E_Expan    when IDE = "011"  else (others => 'Z');
 

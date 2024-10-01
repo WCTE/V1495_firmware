@@ -238,8 +238,10 @@ The registers to invert input into `L2` are:
 ## Prescaling
 
 The results of level 1 logic can be prescaled by powers of 2.
-For a prescale value n, only 1/n positive results coming from the logic unit will be kept.
-
+Bits [7:0] of the register is the value of the prescale.
+Bit [8] controls how the prescale is applied:
+ - `0`: (n-1)/n triggers are passed through
+ - `1`: 1/n triggers are passed through
 To prescale the output of `L1` #7 by 4, (2<sup>2</sup>) set register `0x30d6` to `0x4` (`0b100` or 2<sup>2</sup>).
 
 **Note**: The prescale will ignore any bits lower than the MSB: 0x7 (0b111) will produce the same prescaling as 0x4 (0b100)

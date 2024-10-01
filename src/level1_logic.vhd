@@ -21,10 +21,10 @@ entity level1_logic is
     data_in : in std_logic_vector(N_CHANNELS-1 downto 0);
     -- Switch between and/or logic
     logic_type : in std_logic;
-    -- Invert signals
+	 -- Invert signals
     invert : in std_logic_vector(N_CHANNELS-1 downto 0);
     -- Prescale output by this factor
-    prescale : in std_logic_vector(7 downto 0);
+    prescale : in std_logic_vector(8 downto 0);
     -- Counter enable
     count_en_i : in std_logic;
     -- result of this logic unit
@@ -44,7 +44,7 @@ architecture behavioral of level1_logic is
   signal count_s : std_logic_vector(COUNTER_WIDTH-1 downto 0);
   signal data_s: std_logic_vector(N_CHANNELS-1 downto 0);
 	 
-  signal prescale_s : std_logic_vector(7 downto 0);
+  signal prescale_s : std_logic_vector(8 downto 0);
 
   signal mask_nempty : std_logic;
 	 	 
@@ -98,8 +98,9 @@ begin
   inst_prescale : entity work.prescale
     port map(
       clk => clk,
-      prescale_value => prescale_s,
+      prescale_value => prescale_s(7 downto 0),
       counter_value => count_s(7 downto 0),
+		invert => prescale_s(8),
       logic_result => result_s,
       prescaled_result => prescale_result
     );
