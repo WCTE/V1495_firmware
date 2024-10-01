@@ -157,4 +157,6 @@ Usage: V1495-Program.sh [-m|--method] [-f|--file FILE]
             Print this help
 ```
 
+# Simulation
 
+A simulation of the firmware is provided in [the simulation directory](./simulation)

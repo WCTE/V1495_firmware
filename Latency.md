@@ -32,9 +32,9 @@ Since the L1 results and A & B inputs are both inputs to L2, the A & B inputs ar
 ### LEMO Out Latency
 
 The A & B inputs and the L1 outputs are then delayed an additional two clock ticks in order to align them in time with the L2 outputs.
-These final signals are then passed to the LEMO connectors.
+These final signals are then passed to the LEMO connectors with an additional clock tick of latency.
 ![LEMO out](./fig/lemoOut.svg "lemo output")
 
 ## Total latency
 
-Thus, there is a total latency of 6 clock ticks or 6x8 ns = 48 ns between the input and output from the FPGA logic.
+Thus, there is a total latency of 7 clock ticks or 7x8 ns = 56 ns between the input and output from the FPGA logic.
