@@ -55,7 +55,7 @@ while getopts "hm:v:f:a:" opt
 do
   case "$opt" in
     "h") usage >&2; exit 0 ;;
-    "k") ARG=${OPTARG} ;;
+    "a") ARG=${OPTARG} ;;
     "m") 
 	if [[ ${OPTARG,,} == "caen" ]];   then
 	    METHOD=CAEN
@@ -103,13 +103,13 @@ else
     dir=`dirname $filename`
     base=`basename $filename`
 
-    echo "    /* Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version */" >> ${tmpfile}
+    echo "    /* Quartus II 64-Bit Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version */" > ${tmpfile}
     echo "JedecChain;" >> ${tmpfile}
     echo "        FileRevision(JESD32A);" >> ${tmpfile}
     echo "        DefaultMfr(6E);" >> ${tmpfile}
     echo "" >> ${tmpfile}
     echo "        P ActionCode(Cfg)" >> ${tmpfile}
-    echo "                Device PartName(EP1C20F400) Path(\"$dir\") File(\"$base\") MfrSpec(OpMask(1));" >> ${tmpfile}
+    echo "                Device PartName(EP1C20F400) Path(\"$dir//\") File(\"$base\") MfrSpec(OpMask(1));" >> ${tmpfile}
     echo "" >> ${tmpfile}
     echo "ChainEnd;" >> ${tmpfile}
     echo "" >> ${tmpfile}
@@ -117,9 +117,9 @@ else
     echo "        ChainType(JTAG);" >> ${tmpfile}
     echo "AlteraEnd;" >> ${tmpfile}
 
-    cable="USB-Blaster [$arg]"
-    
-    quartus_pgm -c $cable ${tmpfile} --64bit
+    cable="USB-Blaster [$ARG]"
+    echo "quartus_pgm -c $cable ${tmpfile} --64bit"
+    quartus_pgm -c "$cable" ${tmpfile} --64bit
     err=$?
     # Catch if there was any error actually programming the device
     if [ $err -ne 0 ]; then
